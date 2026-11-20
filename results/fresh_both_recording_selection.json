@@ -1,0 +1,275 @@
+{
+  "grouping": "Five deterministic stratified folds by full recording folder, shared by both seeds and models. Each window is scored once at a checkpoint and threshold selected without its recording folder.",
+  "method": "fresh_both",
+  "scope": "Sensitivity to epoch and threshold selection on the reused original validation set. The architecture was already developed on these data. This is neither an independent evaluation nor the primary success metric.",
+  "seeds": {
+    "3": {
+      "baseline": {
+        "folds": [
+          {
+            "fold": 0,
+            "held_counts": [
+              439,
+              397,
+              226
+            ],
+            "held_f1": 0.5849433710859427,
+            "selected_epoch": 3,
+            "selection_f1": 0.7180404076524227,
+            "threshold": 0.8
+          },
+          {
+            "fold": 1,
+            "held_counts": [
+              462,
+              189,
+              183
+            ],
+            "held_f1": 0.7129629629629629,
+            "selected_epoch": 2,
+            "selection_f1": 0.6891371340523883,
+            "threshold": 0.81
+          },
+          {
+            "fold": 2,
+            "held_counts": [
+              430,
+              148,
+              231
+            ],
+            "held_f1": 0.6941081517352704,
+            "selected_epoch": 2,
+            "selection_f1": 0.6936201780415431,
+            "threshold": 0.8
+          },
+          {
+            "fold": 3,
+            "held_counts": [
+              427,
+              77,
+              280
+            ],
+            "held_f1": 0.7052023121387283,
+            "selected_epoch": 2,
+            "selection_f1": 0.6913018760659465,
+            "threshold": 0.81
+          },
+          {
+            "fold": 4,
+            "held_counts": [
+              541,
+              154,
+              252
+            ],
+            "held_f1": 0.7271505376344086,
+            "selected_epoch": 7,
+            "selection_f1": 0.6829454406714994,
+            "threshold": 0.8200000000000001
+          }
+        ],
+        "full_selected_f1": 0.6938964241676943,
+        "held_pooled_f1": 0.6827023014105419
+      },
+      "candidate": {
+        "folds": [
+          {
+            "fold": 0,
+            "held_counts": [
+              429,
+              214,
+              236
+            ],
+            "held_f1": 0.6559633027522935,
+            "selected_epoch": 5,
+            "selection_f1": 0.7362007168458782,
+            "threshold": 0.9500000000000001
+          },
+          {
+            "fold": 1,
+            "held_counts": [
+              511,
+              231,
+              134
+            ],
+            "held_f1": 0.7368421052631579,
+            "selected_epoch": 5,
+            "selection_f1": 0.7169605526267951,
+            "threshold": 0.9500000000000001
+          },
+          {
+            "fold": 2,
+            "held_counts": [
+              486,
+              227,
+              175
+            ],
+            "held_f1": 0.7074235807860262,
+            "selected_epoch": 5,
+            "selection_f1": 0.7243380486035546,
+            "threshold": 0.9500000000000001
+          },
+          {
+            "fold": 3,
+            "held_counts": [
+              463,
+              95,
+              244
+            ],
+            "held_f1": 0.7320158102766798,
+            "selected_epoch": 5,
+            "selection_f1": 0.7184776809532278,
+            "threshold": 0.9500000000000001
+          },
+          {
+            "fold": 4,
+            "held_counts": [
+              594,
+              167,
+              199
+            ],
+            "held_f1": 0.7644787644787645,
+            "selected_epoch": 5,
+            "selection_f1": 0.708286464191976,
+            "threshold": 0.9500000000000001
+          }
+        ],
+        "full_selected_f1": 0.7209639953542393,
+        "held_pooled_f1": 0.7209639953542393
+      }
+    },
+    "42": {
+      "baseline": {
+        "folds": [
+          {
+            "fold": 0,
+            "held_counts": [
+              406,
+              274,
+              259
+            ],
+            "held_f1": 0.6037174721189591,
+            "selected_epoch": 7,
+            "selection_f1": 0.7261792896072167,
+            "threshold": 0.8200000000000001
+          },
+          {
+            "fold": 1,
+            "held_counts": [
+              483,
+              201,
+              162
+            ],
+            "held_f1": 0.7268623024830699,
+            "selected_epoch": 5,
+            "selection_f1": 0.6955534531693472,
+            "threshold": 0.8200000000000001
+          },
+          {
+            "fold": 2,
+            "held_counts": [
+              440,
+              153,
+              221
+            ],
+            "held_f1": 0.7017543859649122,
+            "selected_epoch": 5,
+            "selection_f1": 0.701865671641791,
+            "threshold": 0.8200000000000001
+          },
+          {
+            "fold": 3,
+            "held_counts": [
+              429,
+              78,
+              278
+            ],
+            "held_f1": 0.7067545304777595,
+            "selected_epoch": 5,
+            "selection_f1": 0.7007407407407408,
+            "threshold": 0.8200000000000001
+          },
+          {
+            "fold": 4,
+            "held_counts": [
+              559,
+              145,
+              234
+            ],
+            "held_f1": 0.7468269873079493,
+            "selected_epoch": 5,
+            "selection_f1": 0.6886847762360758,
+            "threshold": 0.8200000000000001
+          }
+        ],
+        "full_selected_f1": 0.701844572119746,
+        "held_pooled_f1": 0.6979966862479289
+      },
+      "candidate": {
+        "folds": [
+          {
+            "fold": 0,
+            "held_counts": [
+              462,
+              382,
+              203
+            ],
+            "held_f1": 0.6123260437375746,
+            "selected_epoch": 18,
+            "selection_f1": 0.7377472055030094,
+            "threshold": 0.89
+          },
+          {
+            "fold": 1,
+            "held_counts": [
+              482,
+              199,
+              163
+            ],
+            "held_f1": 0.726998491704374,
+            "selected_epoch": 5,
+            "selection_f1": 0.7161961367013373,
+            "threshold": 0.97
+          },
+          {
+            "fold": 2,
+            "held_counts": [
+              485,
+              229,
+              176
+            ],
+            "held_f1": 0.7054545454545454,
+            "selected_epoch": 4,
+            "selection_f1": 0.723248582403512,
+            "threshold": 0.9500000000000001
+          },
+          {
+            "fold": 3,
+            "held_counts": [
+              443,
+              82,
+              264
+            ],
+            "held_f1": 0.7191558441558441,
+            "selected_epoch": 5,
+            "selection_f1": 0.7181453085067543,
+            "threshold": 0.97
+          },
+          {
+            "fold": 4,
+            "held_counts": [
+              591,
+              182,
+              202
+            ],
+            "held_f1": 0.7547892720306514,
+            "selected_epoch": 4,
+            "selection_f1": 0.7092494313874147,
+            "threshold": 0.9500000000000001
+          }
+        ],
+        "full_selected_f1": 0.7196726103478515,
+        "held_pooled_f1": 0.7029109589041096
+      }
+    }
+  }
+}

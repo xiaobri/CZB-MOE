@@ -1,0 +1,8 @@
+{
+  "all_eight_real_data_smoke_and_integration_passed": true,
+  "compared_to_original_baseline_run": true,
+  "explicit_independent_correction_loss": true,
+  "original_core_loss_retained": true,
+  "same_actual_sampling_order": true,
+  "same_initial_sixth_and_router": true
+}

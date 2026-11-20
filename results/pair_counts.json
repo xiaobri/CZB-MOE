@@ -1,0 +1,30 @@
+[
+  {
+    "seed": 3,
+    "at_end_of_training": {
+      "eligible_class_counts": [
+        203214,
+        138
+      ],
+      "eligible_domains": 9,
+      "history_rows": 2048,
+      "paired_positives": 138,
+      "pairs": 2208,
+      "solved_pairs": 2208
+    }
+  },
+  {
+    "seed": 42,
+    "at_end_of_training": {
+      "eligible_class_counts": [
+        203294,
+        150
+      ],
+      "eligible_domains": 9,
+      "history_rows": 2048,
+      "paired_positives": 150,
+      "pairs": 2400,
+      "solved_pairs": 2400
+    }
+  }
+]

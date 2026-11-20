@@ -1,0 +1,68 @@
+[
+  {
+    "cached_metric": {
+      "accuracy": 0.9884271942870562,
+      "f1": 0.7209639953542393,
+      "fn": 988,
+      "fp": 934,
+      "precision": 0.726660813579163,
+      "sensitivity": 0.7153558052434457,
+      "specificity": 0.9942561251598937,
+      "threshold": 0.9500000000000001,
+      "tn": 161674,
+      "tp": 2483
+    },
+    "changed_threshold_decisions": 0,
+    "exact_f1": true,
+    "full_original_six_experts_recomputed": true,
+    "maximum_probability_error": 9.295344352722168e-05,
+    "method": "fresh_both",
+    "raw_metric": {
+      "accuracy": 0.9884271942870562,
+      "f1": 0.7209639953542393,
+      "fn": 988,
+      "fp": 934,
+      "precision": 0.726660813579163,
+      "sensitivity": 0.7153558052434457,
+      "specificity": 0.9942561251598937,
+      "threshold": 0.9500000000000001,
+      "tn": 161674,
+      "tp": 2483
+    },
+    "rows": 166079,
+    "seed": 3
+  },
+  {
+    "cached_metric": {
+      "accuracy": 0.9884512792104962,
+      "f1": 0.7196726103478515,
+      "fn": 1009,
+      "fp": 909,
+      "precision": 0.7303470780183922,
+      "sensitivity": 0.7093056755978104,
+      "specificity": 0.99440986913313,
+      "threshold": 0.9500000000000001,
+      "tn": 161699,
+      "tp": 2462
+    },
+    "changed_threshold_decisions": 0,
+    "exact_f1": true,
+    "full_original_six_experts_recomputed": true,
+    "maximum_probability_error": 6.717443466186523e-05,
+    "method": "fresh_both",
+    "raw_metric": {
+      "accuracy": 0.9884512792104962,
+      "f1": 0.7196726103478515,
+      "fn": 1009,
+      "fp": 909,
+      "precision": 0.7303470780183922,
+      "sensitivity": 0.7093056755978104,
+      "specificity": 0.99440986913313,
+      "threshold": 0.9500000000000001,
+      "tn": 161699,
+      "tp": 2462
+    },
+    "rows": 166079,
+    "seed": 42
+  }
+]

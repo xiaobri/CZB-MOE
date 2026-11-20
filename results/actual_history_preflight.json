@@ -1,0 +1,9 @@
+{
+  "cases_refreshed": 1,
+  "controls_refreshed": 16,
+  "exact_original_epoch_reread": 16,
+  "existing_negative_windows": 128,
+  "original_training_modes_restored": true,
+  "row_and_epoch_retained": true,
+  "verified": true
+}

@@ -1,0 +1,65 @@
+{
+  "distinct_validation_recording_directories": 72,
+  "grouping": "Full parent directory, a recording proxy. Patient identity not established.",
+  "method": "fresh_both",
+  "resamples": 3000,
+  "rows": [
+    {
+      "baseline": {
+        "best_ap_epoch": 7,
+        "best_f1_epoch": 2,
+        "f1_at_best_ap_epoch": 0.6927191679049034,
+        "fixed_f1": 0.6938964241676943,
+        "selected_threshold": 0.81,
+        "selection_grid_f1": 0.6938964241676943
+      },
+      "candidate": {
+        "best_ap_epoch": 8,
+        "best_f1_epoch": 5,
+        "f1_at_best_ap_epoch": 0.7145509067542481,
+        "fixed_f1": 0.7209639953542393,
+        "raw_grid_best_f1": 0.7209639953542393,
+        "selected_threshold": 0.9500000000000001,
+        "selection_grid_f1": 0.7209639953542393
+      },
+      "change_false_positives": 168,
+      "change_true_positives": 232,
+      "fixed_point_paired_delta": 0.027067571186545014,
+      "folder_bootstrap_95_interval": [
+        0.009718524676644458,
+        0.05319017112421267
+      ],
+      "reference_type": "strict_raw_rerun",
+      "seed": 3
+    },
+    {
+      "baseline": {
+        "best_ap_epoch": 7,
+        "best_f1_epoch": 5,
+        "f1_at_best_ap_epoch": 0.7014701470147015,
+        "fixed_f1": 0.701844572119746,
+        "selected_threshold": 0.8200000000000001,
+        "selection_grid_f1": 0.701844572119746
+      },
+      "candidate": {
+        "best_ap_epoch": 1,
+        "best_f1_epoch": 4,
+        "f1_at_best_ap_epoch": 0.7159381102598769,
+        "fixed_f1": 0.7196726103478515,
+        "raw_grid_best_f1": 0.7196726103478515,
+        "selected_threshold": 0.9500000000000001,
+        "selection_grid_f1": 0.7196726103478515
+      },
+      "change_false_positives": 87,
+      "change_true_positives": 141,
+      "fixed_point_paired_delta": 0.017828038228105414,
+      "folder_bootstrap_95_interval": [
+        0.0016681747557670185,
+        0.04234212943592645
+      ],
+      "reference_type": "strict_raw_rerun",
+      "seed": 42
+    }
+  ],
+  "scope": "Paired empirical window-F1 difference resampling whole recording folders. Conditions on selected checkpoints, grid thresholds and the reused Val set; excludes checkpoint/model selection and training uncertainty."
+}

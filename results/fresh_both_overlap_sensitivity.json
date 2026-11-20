@@ -1,0 +1,83 @@
+{
+  "exact_train_val_path_overlap": 0,
+  "excluded_positive_windows": 394,
+  "excluded_windows": 2582,
+  "possible_overlapping_subject_names": 3,
+  "rows": [
+    {
+      "baseline_all": {
+        "f1": 0.6938964241676943,
+        "fn": 1220,
+        "fp": 766,
+        "positives": 3471,
+        "rows": 166079,
+        "tp": 2251
+      },
+      "baseline_excluding_overlap": {
+        "f1": 0.6699507389162561,
+        "fn": 1173,
+        "fp": 703,
+        "positives": 3077,
+        "rows": 163497,
+        "tp": 1904
+      },
+      "baseline_threshold": 0.81,
+      "candidate_all": {
+        "f1": 0.7209639953542393,
+        "fn": 988,
+        "fp": 934,
+        "positives": 3471,
+        "rows": 166079,
+        "tp": 2483
+      },
+      "candidate_excluding_overlap": {
+        "f1": 0.7029621049147774,
+        "fn": 953,
+        "fp": 842,
+        "positives": 3077,
+        "rows": 163497,
+        "tp": 2124
+      },
+      "candidate_threshold": 0.9500000000000001,
+      "seed": 3
+    },
+    {
+      "baseline_all": {
+        "f1": 0.701844572119746,
+        "fn": 1150,
+        "fp": 822,
+        "positives": 3471,
+        "rows": 166079,
+        "tp": 2321
+      },
+      "baseline_excluding_overlap": {
+        "f1": 0.6798063623789765,
+        "fn": 1111,
+        "fp": 741,
+        "positives": 3077,
+        "rows": 163497,
+        "tp": 1966
+      },
+      "baseline_threshold": 0.8200000000000001,
+      "candidate_all": {
+        "f1": 0.7196726103478515,
+        "fn": 1009,
+        "fp": 909,
+        "positives": 3471,
+        "rows": 166079,
+        "tp": 2462
+      },
+      "candidate_excluding_overlap": {
+        "f1": 0.7012683578104139,
+        "fn": 976,
+        "fp": 814,
+        "positives": 3077,
+        "rows": 163497,
+        "tp": 2101
+      },
+      "candidate_threshold": 0.9500000000000001,
+      "seed": 42
+    }
+  ],
+  "scope": "Sensitivity only. Original selected operating points remain locked. Recording-parent basenames serve as possible subject identifiers. The available manifest does not establish patient-disjoint evaluation."
+}
