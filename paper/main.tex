@@ -155,7 +155,7 @@ The eligibility criterion limits the number of observations that can distinguish
 \paragraph{Contribution of the pair correction within a run.}
 At the full model's selected epoch, evaluating its temporal parent on the same windows with a separately selected grid threshold gives a direct comparison between two outputs of one fit. The corrected head gains 0.756 and 0.559 F1 points over that parent for seeds 3 and 42. Allowing each output to select its own best epoch reduces the differences to 0.433 and 0.262 points. At the parent's own best epoch, the corrected score instead trails by 0.311 and 0.353 points. Choosing the epoch from one of the two heads can favor the chosen head. Reporting all three comparisons makes this dependence visible.
 
-Across the 20 epochs the corrected output exceeds its simultaneous parent's F1 in 18 epochs for seed 3 and 13 for seed 42. These checkpoints are successive states of a single training process. Their signs describe the trajectory and cannot be counted as independent replications. The size of the within-run correction is smaller than the full-model gain over the strict baseline. Separating the remaining gain among temporal allocation, peak-shape features, parameter count and auxiliary supervision would require additional paired controls.
+Across the 20 epochs the corrected output exceeds its simultaneous parent's F1 in 18 epochs for seed 3 and 13 for seed 42. These checkpoints are successive states of a single training process. Their signs describe the trajectory and cannot be counted as independent replications. The size of the within-run correction is smaller than the full-model gain over the strict baseline. With the same parameter count and supervision, conditioning the temporal weights on the current window adds 0.16 F1 points on Xiehe and 0.03 across external sites relative to learned, fixed position weights (Appendix~\ref{sec:timecontrol}).
 
 \subsection{What happens to individual decisions?}
 Table~\ref{tab:episodes} gives the operating points underlying the F1 scores. For seed 3 recall rises by 6.68 points and precision falls by 1.94 points. For seed 42 recall rises by 4.06 points and precision falls by 0.81 points. The accuracy of both models rounds to approximately 99\%, reflecting the dominance of negative windows. Counts and class-specific rates show the trade-off more directly.
@@ -349,4 +349,5 @@ Figures~\ref{fig:expertweights} and~\ref{fig:expertscores} group windows by true
 \includegraphics[width=.90\textwidth]{expert_distributions.pdf}
 \caption{Routing-weight distributions for the six experts on true positive-class windows, including those the model misses. Points mark medians and whiskers span the 25th to 75th percentiles. The horizontal scale is shared across all panels.}\label{fig:expertdist}
 \end{figure}
+\input{time_control}
 \end{document}

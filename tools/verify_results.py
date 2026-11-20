@@ -8,6 +8,7 @@ from pathlib import Path
 from statistics import mean
 
 from benchmark_table import render as render_benchmark
+from time_control_report import table as temporal_table, verify_public as verify_temporal_control
 
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results"
@@ -169,6 +170,10 @@ def main():
             check(proof["raw_metric"][k] == int(row[k]), "Raw confusion matrix differs")
 
     check(render_benchmark() == (ROOT / "paper/benchmark_rows.tex").read_text(), "Table 1 differs from its counts")
+    temporal = csv_rows("time_control_sites.csv")
+    verify_temporal_control(temporal, json.loads((RESULTS / "time_control_protocol.json").read_text()))
+    check(temporal_table(temporal) == (ROOT / "paper/time_control_rows.tex").read_text(),
+          "Temporal control table differs from its counts")
     verify_recording_budget()
     verify_external(selected)
     verify_operating_points(selected)

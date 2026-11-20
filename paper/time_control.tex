@@ -1,0 +1,19 @@
+\clearpage
+\input{time_control_rows}
+\section{Does the temporal scorer need the current window?}
+\label{sec:timecontrol}
+The temporal scorer in the full model sees eight feature vectors from the current EEG window for each region. We trained a control with the same scorer networks, loss terms, pairing rules and global head. Its input for position $j$ is the fixed vector $c_{jk}=\sqrt{2}\cos[\pi j(k+0.5)/d]$, where $j=1,\ldots,8$, $d$ is the scorer input width and $k=0,\ldots,d-1$. Each region can learn a different profile across positions. That profile is shared across its windows. The weighted sum still uses the actual EEG features for each window.
+
+We refitted both arms from scratch for seeds 3 and 42. Within each seed all 2,826,520 trainable parameters had identical initial values. Each pair saw the same sampled indices and batch order over all 20 epochs, with 400,000 draws and 3,140 optimizer steps per fit. Each model selected its epoch and threshold on the original 99-point Xiehe grid. We locked these four operating points before evaluating the external hospitals. All five cohorts were evaluated from raw EEG. The external sites had been evaluated in the main study. With the selected thresholds fixed, raw and cached Xiehe inference agreed on every decision for three fits. For the fixed-input seed-3 fit, one cached true positive became a false negative on raw EEG (F1 71.829 to 71.811). Table~\ref{tab:timecontrol} uses raw EEG throughout.
+
+\begin{table}[ht]\centering\small
+\caption{Temporal scorer input ablation. F1 is positive-class window F1 in percent. $\Delta$ is the window-conditioned (dynamic) score minus the position-only (fixed) score, in percentage points. The last row weights the four external hospitals equally.}\label{tab:timecontrol}
+\begin{tabular}{@{}lrrrrrrrrr@{}}\toprule
+&\multicolumn{3}{c}{Seed 3}&\multicolumn{3}{c}{Seed 42}&\multicolumn{3}{c}{Two-seed mean}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(l){8-10}
+Cohort & Fixed & Dynamic & $\Delta$ & Fixed & Dynamic & $\Delta$ & Fixed & Dynamic & $\Delta$\\\midrule
+\TemporalControlRows
+\bottomrule\end{tabular}
+\end{table}
+
+On Xiehe, window conditioning improves F1 by 0.18 and 0.14 points for seeds 3 and 42. The equal-site external effect changes sign across seeds ($-0.18$ and $+0.24$ points) and averages $+0.03$. Both seeds improve at Tiantan and both decline at Xi'an. Chifeng has the largest disagreement between seeds ($-1.14$ and $+1.53$). The source experiment supports a small benefit from conditioning on the EEG window. The external results give little evidence of a consistent transfer benefit. This comparison is specific to the position encoding, two seeds and full six-expert architecture studied here.

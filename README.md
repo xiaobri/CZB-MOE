@@ -45,6 +45,10 @@ The full model gains **2.245 percentage points** on average. At its selected ope
 
 The absolute gain covers the entire extended model, including its larger temporal readout and auxiliary supervision.
 
+### Does the temporal scorer benefit from seeing the current window?
+
+In a fresh paired ablation, each region learned eight time weights either from the current EEG window or from eight fixed position vectors shared by every window. Both fits retained the same 2,826,520 trainable parameters, initial weights within seed, draw order, losses and pair correction. On raw Xiehe EEG, the dynamic and fixed arms averaged **72.03 and 71.87 F1**, a **+0.16** point difference. On the four external sites they averaged **45.10 and 45.07**. The equal-site differences for seeds 3 and 42 were **−0.18 and +0.24** points. These two runs support a small source-validation gain. The transfer effect varied by hospital and seed. [All 20 operating points](results/time_control_sites.csv) · [Protocol and initialization audit](results/time_control_protocol.json) · [Control design](source/I2MOE/test333/fair_static_time_control/PROTOCOL.md)
+
 ### What transferred to four other hospitals?
 
 All 698,502 external windows were evaluated at the Xiehe-selected checkpoints and thresholds. Each cell averages the two seed-specific F1 scores, in percent.

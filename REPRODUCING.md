@@ -131,3 +131,28 @@ tectonic main.tex
 ```
 
 To regenerate both figures from the epoch CSV and operating-point JSON, install matplotlib 3.10.9 in a plotting environment and run `python tools/figure.py` from the repository root. Run `python tools/study_figures.py` to regenerate the architecture diagram and all three six-expert figures. The conference supplies the style, bibliography style and companion files. [Official ICML 2026 style archive](https://media.icml.cc/Conferences/ICML2026/Styles/icml2026.zip)
+
+## Compare window-conditioned and fixed temporal scores
+
+The [control specification](source/I2MOE/test333/fair_static_time_control/PROTOCOL.md) defines the intervention and the two-seed comparison. With the same environment, source checkpoints and caches used above, run fresh fits in separate processes. These commands keep the published full-model runs intact.
+
+```bash
+TC="$CZB_RUNS/time_control"
+for ARM in dynamic fixed; do
+  for SEED in 3 42; do
+    CUDA_VISIBLE_DEVICES=0 python "$EXP/fair_static_time_control/train.py" \
+      --arm "$ARM" --seed "$SEED" --output-dir "$TC/formal/$ARM/seed$SEED"
+  done
+done
+python tools/time_control_lock.py --runs "$TC/formal" --output "$TC/locked.json"
+PIDS=()
+for GPU in 0 1 2 3 4 5 6 7; do
+  CUDA_VISIBLE_DEVICES="$GPU" python tools/time_control_eval.py --runs "$TC/formal" \
+    --lock "$TC/locked.json" --storage "$CZB_STORAGE" --output "$TC/raw" --shard "$GPU" &
+  PIDS+=("$!")
+done
+for PID in "${PIDS[@]}"; do wait "$PID" || exit 1; done
+python tools/time_control_report.py --parts "$TC/raw" --lock "$TC/locked.json"
+```
+
+The lock verifies each epoch's draws and batch order against the original baseline and checks equality of the complete trainable initialization within each seed. The evaluator compares source decisions with cached execution and checks the variation in temporal weights across real windows of the first batch in each shard. From a checkout with only aggregate results, `python3 tools/time_control_report.py` verifies the published table against its counts.
