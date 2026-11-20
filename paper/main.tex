@@ -121,41 +121,32 @@ Table~\ref{tab:arms} describes the four variants. When case refresh is enabled, 
 
 
 
+\input{benchmark}
 \section{Experimental Protocol}
 \subsection{Data and sampling}
 The input manifest contains 731,610 training windows (190,413 positive) and 166,079 validation windows (3,471 positive). The unit of prediction is one binary-labeled window. Training and validation contain different positive fractions, about 26.0\% and 2.09\%. In addition, the optimizer sees a sampled training distribution with only 645 positives in 20,000 draws per epoch. These three frequencies serve different purposes. The training manifest supplies the group-specific class counts used for matching, the validation class mix determines the operating characteristics on validation, and the sampled distribution determines how frequently the estimator encounters a positive in training.
 
-The loader retains the first 19 channels in their stored order. It divides each input by $10^{-3}$ in its stored numeric precision, then copies up to 2,000 samples per channel into a zero-initialized FP32 buffer. The same preprocessing and five frozen source checkpoints are used throughout. The manifest provides validation recording folders but lacks a verified patient identifier. We retain the existing split for comparison with the historical protocol and separately examine the consequences of grouping by recording.
+The loader retains the first 19 channels in their stored order. It divides each input by $10^{-3}$ in its stored numeric precision, then copies up to 2,000 samples per channel into a zero-initialized FP32 buffer. All paired six-expert runs share this preprocessing and the five frozen source checkpoints. The manifest provides validation recording folders but lacks a verified patient identifier. We retain the existing split for comparison with the historical protocol and separately examine the consequences of grouping by recording.
 
-The baseline samples 19,355 negatives and 645 positives without replacement within each epoch. Repeated appearances in different epochs are possible. It uses 156 full batches of 128 windows and one final batch of 32. With 20 epochs, every fit has 400,000 training draws and 3,140 AdamW updates. The learning rate is $5\times10^{-4}$, weight decay is 0.01, and the focal parameters are $\alpha=0.85$ and $\gamma=2$. Both the training and evaluation batch sizes are 128. Training uses FP32 with a per-process GPU memory cap of 4 GiB. The analytic solver has its own FP64 buffers.
+The baseline samples 19,355 negatives and 645 positives without replacement within each epoch. Repeated appearances in different epochs are possible. It uses 156 full batches of 128 windows and one final batch of 32. With 20 epochs, each paired fit has 400,000 training draws and 3,140 AdamW updates. The learning rate is $5\times10^{-4}$, weight decay is 0.01, and the focal parameters are $\alpha=0.85$ and $\gamma=2$. Both the training and evaluation batch sizes are 128. Training uses FP32 with a per-process GPU memory cap of 4 GiB. The analytic solver has its own FP64 buffers.
 
 \subsection{Pairing and execution}
-We compare each method at seeds 3 and 42. We check the frozen-file digests and the initialization hash for the trainable parameters shared with the original core. Two order checks are made per epoch: one records the sampled row indices, the other records their order after the batch sampler has been applied. All ten method--seed runs pass the formal configuration comparison and match the corresponding baseline sampler hashes for all 20 epochs. The original configuration permits nondeterministic GPU execution. An initialization or order match does not make independently trained arms bitwise-identical.
+We compare the baseline and four score-refresh policies at seeds 3 and 42. We check the frozen-file digests and the initialization hash for the trainable parameters shared with the original core. Two order checks are made per epoch: one records the sampled row indices, the other records their order after the batch sampler has been applied. All ten method--seed runs pass the formal configuration comparison and match the corresponding baseline sampler hashes for all 20 epochs. The original configuration permits nondeterministic GPU execution. An initialization or order match does not make independently trained arms bitwise-identical.
 
 The candidate caches frozen features to avoid recomputing the five convolutional networks for every repeated draw. Extraction includes the special packets for the original partial batches. For the final comparison we re-ran the selected candidate checkpoints using all six experts on the raw validation windows. The largest absolute discrepancies from cached probabilities were $9.30\times10^{-5}$ and $6.72\times10^{-5}$ for seeds 3 and 42. Zero decisions changed at the two selected thresholds. This check addresses execution differences at the operating point used for the headline claim.
 
 The strict baseline has 365,576 trainable parameters. The full model has 2,826,520, about 7.7 times as many, as well as the historical memory and analytic buffers. Additional head evaluations occur during score refresh. Matching the draw and optimizer budgets makes the comparison informative about reuse of the available examples. It does not match floating-point operations, elapsed training time or the number of times each representation is used in a supervised term.
 
 \subsection{Endpoint and model selection}
-We classify a window as positive when its score is strictly greater than the threshold. At each epoch we scan the 99 thresholds from 0.01 to 0.99 in steps of 0.01. We select the epoch and threshold that maximize positive-class window F1, $2\mathrm{TP}/(2\mathrm{TP}+\mathrm{FP}+\mathrm{FN})$, separately for every run. The reported mean averages the two seed-specific F1 values on the same validation windows. It is the performance summary of two training runs, with no prediction averaging across seeds. Average precision (AP) uses the complete ordering of scores and is reported separately.
+We classify a window as positive when its score is strictly greater than the threshold. For the primary six-expert comparison we scan the 99 thresholds at each epoch from 0.01 to 0.99 in steps of 0.01. We select the epoch and threshold that maximize positive-class window F1, $2\mathrm{TP}/(2\mathrm{TP}+\mathrm{FP}+\mathrm{FN})$, separately for every run. The reported mean averages the two seed-specific F1 values on the same validation windows. It is the performance summary of two training runs, with no prediction averaging across seeds. Average precision (AP) uses the complete ordering of scores and is reported separately.
 
 The validation split was inspected during method development. We preserve this endpoint to answer the narrow question about improvement under the original selection protocol. To understand sensitivity we also select epochs by AP, inspect the parent and corrected heads within the same run, constrain the number of false positives, and select operating points with recording folds held out. These sensitivity analyses revisit the same source cohort. The four-hospital test below uses separate manifests.
 
 \section{Results}
+\paragraph{Comparison across architectures.}
+Table~\ref{tab:benchmark} compares the local implementations on the same 166,079 Xiehe validation windows. On the common 19-threshold grid, the proposed readout reaches 72.03 mean F1, compared with 70.13 for the earlier I2MOE9E model, 69.64 for the strict six-expert baseline and 64.96 for ResNet-50, the strongest standalone backbone. The backbone scores describe the fixed training recipe. Pretraining, preprocessing and capacity differ across architectures. REVE Base, for example, uses recording-level normalization and 200\,Hz inputs. The paired six-expert comparison controls the frozen sources, initialization and draw order.
 \subsection{The combined model and the refresh ablation}
-The full method improves F1 over the strict baseline for each seed (Table~\ref{tab:main}). The mean increases from 69.787 to 72.032. The individual full-model results, 72.096 and 71.967, lie on opposite sides of 72. At the chosen checkpoints both models assign relatively high thresholds to their positive predictions, and the full model's selected threshold is 0.95 for both seeds. Threshold values cannot be compared as absolute measures of confidence across differently trained readouts.
-
-\begin{table}[t]\centering\small
-\caption{Validation F1 in percent. Each run uses its own selected epoch and grid threshold. Differences between scores in the text are percentage points.}\label{tab:main}
-\begin{tabular}{lrrr}\toprule
-Training method & Seed 3 & Seed 42 & Mean\\\midrule
-Strict baseline & 69.390 & 70.184 & 69.787\\
-Collection-time scores & 71.869 & 72.150 & 72.009\\
-Refresh cases & 71.849 & 72.068 & 71.959\\
-Refresh controls & 71.939 & 72.099 & 72.019\\
-Refresh both & 72.096 & 71.967 & 72.032\\\bottomrule
-\end{tabular}
-\end{table}
+On the original 99-threshold grid, the full method improves F1 over the strict baseline for each seed (Appendix Table~\ref{tab:main}). The mean increases from 69.787 to 72.032. The individual full-model results, 72.096 and 71.967, lie on opposite sides of 72. At the chosen checkpoints both models assign relatively high thresholds to their positive predictions, and the full model's selected threshold is 0.95 for both seeds. Threshold values cannot be compared as absolute measures of confidence across differently trained readouts.
 
 Most of the separation from baseline is already present with scores evaluated at collection time. That variant gains 2.222 points on average, leaving 0.023 points between it and the full model. The largest and smallest two-seed means among the four memory policies are about 0.073 points apart. Refreshing both sides produces the highest score for seed 3, whereas retaining the original scores produces the highest score for seed 42. These observations give little basis for recommending the extra refresh computation solely on the strength of this validation result.
 
@@ -216,15 +207,10 @@ Exclude shared names & 67.00 / 70.30 & 67.98 / 70.13\\\bottomrule
 
 For seed 3 the full model selects epoch 5 and threshold 0.95 on every four-fold selection subset. Its held-fold predictions therefore reproduce the primary result exactly. Seed 42 selects epoch 4 or 5 for four folds and epoch 18 for the fifth. The corresponding grid thresholds span 0.89 to 0.97. Its pooled held-fold F1 drops to 70.29, about half a point above the corresponding baseline (Table~\ref{tab:transfer}). Looking at the counts explains the reduction: the pooled full-model predictions contain 2,463 true positives and 1,074 false positives, compared with 2,462 and 909 in the primary analysis. Nearly all the change is on negative windows.
 
-The pooled results conceal considerable differences between folds. For seed 3 the full model's advantage ranges from 1.33 to 7.10 points, with the largest gain on the fold where the baseline performs worst. For seed 42 all five held-fold differences are positive, but the smallest is only 0.014 points and the largest is 1.24. Both seeds use exactly the same recording partition. The contrasting gain ranges illustrate sensitivity to the trained model and its selected operating point as well as to the recording mix. Five overlapping selection subsets cannot establish a distribution of effects over independent cohorts. The appendix gives their selected operating points.
+Across the five held folds, gains range from 1.33 to 7.10 points for seed 3 and from 0.014 to 1.24 for seed 42. When we also transfer a matched false-positive budget, seed 3 finds 110 additional positives and seed 42 loses 16. Appendix~\ref{sec:fold_detail} gives the fold and recording-overlap analyses.
 
-\paragraph{Transferring the false-positive budget.}
-Using the same fold-specific epochs, we also matched the full model to the baseline false-positive count on the four selection folds. We then applied both thresholds to the held recordings. Across all held windows, seed 3 gained 110 true positives and issued 107 fewer false positives (F1 71.50 versus 68.27). Seed 42 lost 16 true positives and issued 113 fewer false positives (70.69 versus 69.80). The full model exceeded the baseline's false-positive count on two held folds for seed 3 and one for seed 42. Meeting a budget on the selection recordings thus gave neither a per-fold guarantee nor a consistent recall gain on held recordings.
-
-\subsection{A proxy for cross-split identity}
-The manifest contains ten repeated file-path rows and no exact training--validation path overlap. Three recording-directory basenames occur in both splits. A repeated basename can correspond to the same person, a reused naming convention or a different recording. Conversely, a person may appear under multiple names. We can test the effect of excluding these names while keeping the limits of this proxy explicit.
-
-The exclusion removes 2,582 validation windows, including 394 positives. These windows account for about 1.55\% of validation windows but 11.35\% of its positives. Holding the original thresholds and epochs fixed gives full-model F1 of 70.30 and 70.13 on the retained windows. The paired gains over baseline are 3.30 and 2.15 points. The absolute scores drop and the paired gains remain positive. Because F1 depends on class prevalence and because this subset can differ in difficulty, that drop alone cannot quantify leakage. Within the removed subset itself, the full model gains 12 and 6 true positives while adding 29 and 14 false positives. On the retained subset it gains 220 and 135 true positives, accounting for most of the net increase in detections. This decomposition is possible with fixed operating points because TP and FP counts add across disjoint sets. F1 is nonlinear, so analogous subtraction of two F1 scores does not identify the contribution of the excluded recordings. Verifying patient identity would require information outside the manifest.
+\paragraph{Cross-split recording names.}
+Three recording-directory basenames recur across splits. Removing their 2,582 validation windows (394 positives) leaves full-model F1 of 70.30 and 70.13, gains of 3.30 and 2.15 points over baseline at the original thresholds. A directory name only approximates patient identity.
 
 \section{Transfer to Four External Hospitals}
 We evaluated all binary-labeled test windows supplied by Qilu, Tiantan, Chifeng and Xi'an (698,502 windows total). For each seed we locked the original Xiehe-selected checkpoint and threshold before external inference. All four sites used identical channel ordering, input scaling and window length. The model saw neither the hospital identifier nor its labels at prediction time. We used each hospital's labels only to evaluate the resulting scores. The mean for a hospital is the arithmetic mean of its two seed-specific window F1s.
@@ -250,6 +236,17 @@ An OpenAI coding assistant helped examine the implementation and run records, lo
 \appendix
 \onecolumn
 \section{Reproducing the Tables}
+\begin{table}[t]\centering\small
+\caption{Score-refresh ablation on Xiehe. Validation F1 in percent. Each run uses its own selected epoch and grid threshold. Differences between scores in the text are percentage points.}\label{tab:main}
+\begin{tabular}{lrrr}\toprule
+Training method & Seed 3 & Seed 42 & Mean\\\midrule
+Strict baseline & 69.390 & 70.184 & 69.787\\
+Collection-time scores & 71.869 & 72.150 & 72.009\\
+Refresh cases & 71.849 & 72.068 & 71.959\\
+Refresh controls & 71.939 & 72.099 & 72.019\\
+Refresh both & 72.096 & 71.967 & 72.032\\\bottomrule
+\end{tabular}
+\end{table}
 The released selected-checkpoint table contains the threshold, epoch, confusion matrix, AP and AUROC for each method and seed. The epoch table covers all 200 method--seed--epoch combinations. F1 is calculated from integer counts before conversion to percentages. The public verifier needs the Python standard library to check the counts, epoch-level selection, sampler agreement and source digests.
 
 The public operating-point file contains the two sets of 99 raw-input confusion-count pairs per seed and the decision-overlap counts at the selected thresholds. The accompanying script checks raw prediction files against the previously released counts before exporting these aggregates. The false-positive-budget comparison chooses the first feasible threshold in increasing grid order. Its counts can be recovered directly from the public file. Recreating per-window predictions requires authorized access to the original EEG, manifest and regional checkpoints.
@@ -319,6 +316,17 @@ Figure~\ref{fig:budget} uses the source-validation selected checkpoints. The dot
 \includegraphics[width=0.54\textwidth]{epoch_f1.pdf}
 \caption{Best validation-grid F1 at each epoch. Dots mark the checkpoints used in the primary comparison. Each trace covers one training run.}\label{fig:curve}
 \end{figure}
+\section{Recording-Level Sensitivity}\label{sec:fold_detail}
+The pooled results conceal considerable differences between folds. For seed 3 the full model's advantage ranges from 1.33 to 7.10 points, with the largest gain on the fold where the baseline performs worst. For seed 42 all five held-fold differences are positive, but the smallest is only 0.014 points and the largest is 1.24. Both seeds use exactly the same recording partition. The contrasting gain ranges illustrate sensitivity to the trained model and its selected operating point as well as to the recording mix. Five overlapping selection subsets cannot establish a distribution of effects over independent cohorts. The appendix gives their selected operating points.
+
+\paragraph{Transferring the false-positive budget.}
+Using the same fold-specific epochs, we also matched the full model to the baseline false-positive count on the four selection folds. We then applied both thresholds to the held recordings. Across all held windows, seed 3 gained 110 true positives and issued 107 fewer false positives (F1 71.50 versus 68.27). Seed 42 lost 16 true positives and issued 113 fewer false positives (70.69 versus 69.80). The full model exceeded the baseline's false-positive count on two held folds for seed 3 and one for seed 42. Meeting a budget on the selection recordings thus gave neither a per-fold guarantee nor a consistent recall gain on held recordings.
+
+\subsection{A proxy for cross-split identity}
+The manifest contains ten repeated file-path rows and no exact training--validation path overlap. Three recording-directory basenames occur in both splits. A repeated basename can correspond to the same person, a reused naming convention or a different recording. Conversely, a person may appear under multiple names. We can test the effect of excluding these names while keeping the limits of this proxy explicit.
+
+The exclusion removes 2,582 validation windows, including 394 positives. These windows account for about 1.55\% of validation windows but 11.35\% of its positives. Holding the original thresholds and epochs fixed gives full-model F1 of 70.30 and 70.13 on the retained windows. The paired gains over baseline are 3.30 and 2.15 points. The absolute scores drop and the paired gains remain positive. Because F1 depends on class prevalence and because this subset can differ in difficulty, that drop alone cannot quantify leakage. Within the removed subset itself, the full model gains 12 and 6 true positives while adding 29 and 14 false positives. On the retained subset it gains 220 and 135 true positives, accounting for most of the net increase in detections. This decomposition is possible with fixed operating points because TP and FP counts add across disjoint sets. F1 is nonlinear, so analogous subtraction of two F1 scores does not identify the contribution of the excluded recordings. Verifying patient identity would require information outside the manifest.
+
 \section{External Test Protocol and Per-Seed Results}
 Each site manifest contained both target classes. We used every manifest row in its original order. Native batches contain 128 windows with a possible shorter last batch. The five frozen expert files were verified against the metadata of each of the four fitted models. The four fits share the same five convolutional backbones. During evaluation their last feature maps were computed once per batch, and each fit applied its own hooks, classification heads, router and fitted readout. A direct comparison recomputed the complete convolutional forward path on the first batch of every site partition and each partial final batch. It checked the final score, six routing weights and six expert scores against the shared-feature implementation.
 \input{external_detail}

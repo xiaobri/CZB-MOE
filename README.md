@@ -4,7 +4,32 @@
 
 This study asks whether five frozen regional EEG experts and a global redundancy expert can recover more positive windows under the original training schedule. The full model learns to pool regional evidence over eight temporal segments and compares positive windows with previously observed negative windows from the same training acquisition group. At inference all six experts contribute, and the classifier only needs the EEG window.
 
-### What improved?
+### Main benchmark
+
+Table 1 of the paper compares **15 baselines and the proposed model** on the same 166,079 Xiehe validation windows. The table gives each seed and its two-seed mean, plus the four external hospitals wherever there are matching archived tests. [Table 1 in the paper](paper/main.pdf#page=5) · [Validation counts by epoch](results/benchmark_validation.csv) · [Backbone external counts](results/benchmark_external.csv)
+
+| Xiehe validation method | Seed 3 | Seed 42 | Mean F1 (%) |
+| --- | ---: | ---: | ---: |
+| EEGNet | 33.47 | 33.68 | 33.58 |
+| TCNet | 30.87 | 25.88 | 28.37 |
+| ACTNet-S | 6.87 | 4.76 | 5.81 |
+| EEG Transformer | 14.48 | 13.76 | 14.12 |
+| REVE Base | 25.61 | 24.10 | 24.85 |
+| ResNet-50 | 63.47 | 66.46 | 64.96 |
+| DenseNet-121 | 62.79 | 63.96 | 63.37 |
+| MobileNetV3-L | 61.67 | 62.46 | 62.07 |
+| EfficientNetV2-S | 64.13 | 65.22 | 64.68 |
+| ConvNeXt-L | 4.10 | 4.09 | 4.10 |
+| ViT-B/16 | 5.56 | 21.72 | 13.64 |
+| EfficientViT-M4 | 48.53 | 50.48 | 49.50 |
+| EfficientViM-M1 | 55.70 | 55.27 | 55.48 |
+| I2MOE9E | 69.80 | 70.47 | 70.13 |
+| Six-expert baseline | 69.37 | 69.91 | 69.64 |
+| **Proposed model** | 72.10 | 71.97 | **72.03** |
+
+Every row above uses epochs 1–20, batch 128, 20,000 draws per epoch, and the same 19 Xiehe thresholds. The primary paired experiment below uses its original 99 thresholds. This changes the strict baseline mean from 69.64 to 69.79. The proposed model selects the same operating points on both grids. Independent architectures use their own preprocessing and initialization.
+
+### What improved within the six-expert model?
 
 Positive-class **validation F1**, in percent, on 166,079 windows. The baseline is the strict raw-input rerun. Each model selects its epoch and threshold with the same validation grid.
 

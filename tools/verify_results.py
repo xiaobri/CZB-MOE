@@ -7,6 +7,8 @@ from collections import defaultdict
 from pathlib import Path
 from statistics import mean
 
+from benchmark_table import render as render_benchmark
+
 ROOT = Path(__file__).resolve().parents[1]
 RESULTS = ROOT / "results"
 METHODS = ("baseline", "collection", "fresh_cases", "fresh_controls", "fresh_both")
@@ -166,6 +168,7 @@ def main():
         for k in ("tp", "fp", "tn", "fn"):
             check(proof["raw_metric"][k] == int(row[k]), "Raw confusion matrix differs")
 
+    check(render_benchmark() == (ROOT / "paper/benchmark_rows.tex").read_text(), "Table 1 differs from its counts")
     verify_recording_budget()
     verify_external(selected)
     verify_operating_points(selected)

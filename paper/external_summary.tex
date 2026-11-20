@@ -1,14 +1,1 @@
-\begin{table}[t]\centering\small
-\caption{External positive-class window F1 (percent), averaged over seeds 3 and 42 at the source-selected thresholds. Each hospital contributes one value to the last row.}\label{tab:external}
-\begin{tabular}{lrrr}\toprule
-Hospital & Baseline & Full model & Difference\\\midrule
-Qilu & 61.89 & 63.77 & +1.88\\
-Tiantan & 42.37 & 41.57 & -0.80\\
-Chifeng & 42.22 & 45.73 & +3.51\\
-Xi'an & 24.19 & 31.44 & +7.25\\
-\midrule
-Equal-site mean & 42.67 & 45.63 & +2.96\\\bottomrule
-\end{tabular}
-\end{table}
-
-The full model improves F1 for both seeds at Qilu, Chifeng and Xi'an, while both seeds decline at Tiantan (Table~\ref{tab:external}). The equal-site mean rises from 42.67 to 45.63. Xi'an has the largest gain, 7.25 points, yet full-model recall there averages only 21.13\%. At Tiantan the model finds 136 and 37 more true positives but adds 679 and 555 false positives, respectively. Mean recall rises from 73.57\% to 75.59\%, while precision falls from 29.75\% to 28.67\%. Transporting the source operating point therefore changes the balance of errors in a site-dependent manner. Per-seed counts and ranking metrics are in the appendix.
+The full model improves F1 for both seeds at Qilu, Chifeng and Xi'an, while both seeds decline at Tiantan (Table~\ref{tab:benchmark}B). The equal-site mean rises from 42.67 to 45.63. Xi'an has the largest gain, 7.25 points, yet full-model recall there averages only 21.13\%. At Tiantan the model finds 136 and 37 more true positives but adds 679 and 555 false positives, respectively. Mean recall rises from 73.57\% to 75.59\%, while precision falls from 29.75\% to 28.67\%. Transporting the source operating point therefore changes the balance of errors in a site-dependent manner. Per-seed counts and ranking metrics are in the appendix.

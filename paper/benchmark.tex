@@ -1,0 +1,35 @@
+\input{benchmark_rows}
+\begin{table*}[t]
+\centering
+\caption{Positive-class window F1 (\%). Panel A compares all models on Xiehe validation with a common selection rule. Panel B reports source and external F1 for the same checkpoint within each row. Entries in B average seeds 3 and 42. The final column gives equal weight to each of the four external hospitals.}
+\label{tab:benchmark}
+\begin{minipage}[t]{0.356\textwidth}
+\centering\footnotesize
+\textbf{A. Xiehe validation}\\[3pt]
+\setlength{\tabcolsep}{2.8pt}
+\begin{tabular}{@{}lrrr@{}}\toprule
+Method & Seed 3 & Seed 42 & Mean\\\midrule
+\BenchmarkSource
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.625\textwidth}
+\centering\footnotesize
+\textbf{B. Transfer at a fixed Xiehe operating point}\\[3pt]
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lrrrrrr@{}}\toprule
+& Source & \multicolumn{5}{c}{External test hospitals}\\
+\cmidrule(lr){2-2}\cmidrule(l){3-7}
+Method & Xiehe & Qilu & Tiantan & Chifeng & Xi'an & Mean\\\midrule
+\multicolumn{7}{@{}l}{\textit{Backbones: batch 32, checkpoint selected by Xiehe AP}}\\
+\BenchmarkArchived
+\midrule
+\multicolumn{7}{@{}l}{\textit{Paired study: batch 128, checkpoint selected by Xiehe F1}}\\
+\BenchmarkPaired
+\bottomrule
+\end{tabular}
+
+\vspace{5pt}\raggedright
+In A, every run uses batch 128, 20,000 draws per epoch and a learning rate of $5\times10^{-4}$. We select the best validation F1 over epochs 1--20 and 19 thresholds (0.05 to 0.95). In B, the archived backbone runs use the same 19 thresholds at their best-AP epoch. The paired study uses its original 99-threshold grid (0.01 to 0.99). Each seed keeps its source threshold at every external site.
+\end{minipage}
+\end{table*}

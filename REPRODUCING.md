@@ -8,6 +8,14 @@ python3 tools/verify_results.py
 
 This recalculates F1 from the four confusion counts, verifies checkpoint selection over all 20 epochs, checks the sample-order hashes, compares initialization of shared parameters and checks the released source hashes. It uses only aggregate results. Scores in the CSVs are fractions. The manuscript reports percentages, and differences are in percentage points. AUPRC in the CSVs is scikit-learn average precision. Paired bootstrap intervals condition on the selected epochs and thresholds.
 
+## Rebuild the main benchmark table
+
+`python3 tools/benchmark_table.py` checks Table 1 against public confusion counts. Add `--write` to regenerate its LaTeX rows. [Table source](paper/benchmark.tex) · [Numeric rows](paper/benchmark_rows.tex)
+
+Panel A uses the first 20 epochs of each run, seeds 3 and 42, batch 128, 20,000 draws per epoch and a learning rate of 0.0005. The standalone runs were scheduled for 30 epochs. The selection window ends at epoch 20 for every model. Each record in [benchmark_validation.csv](results/benchmark_validation.csv) gives the epoch's best F1 on 19 thresholds, 0.05 through 0.95, and the four corresponding window counts. For `source_f1_19`, select the highest F1 across the 20 epochs for each model and seed, taking the earliest epoch on a tie. The EEGNet and ACTNet-S rows use the local enlarged configurations. The EEG Transformer has four temporal patch-attention layers. REVE Base uses recording-level channel normalization and resampling to 200 Hz. ConvNeXt-L predicted positive on 165,932 and 166,079 of 166,079 windows at its two selected operating points, which accounts for its low F1.
+
+Panel B uses one source operating point per model and seed across all five hospitals. For the five archived batch-32 backbones, `external_ap19` selects the highest Xiehe average precision in 20 epochs and its corresponding source F1 threshold. The external confusion counts are in [benchmark_external.csv](results/benchmark_external.csv). For the batch-128 six-expert pair the original [selected checkpoints](results/selected.csv) and [external records](results/external_sites.csv) use best Xiehe F1 on 99 thresholds. The public table check matches epoch and cutoff across sites, recomputes F1 for every cell and checks cohort sizes and positive counts. Means use full-precision seed scores. The external mean weights the four external hospitals equally.
+
 ## Run the code tests
 
 The experiment used CPython 3.10.20, PyTorch 2.4.0 and torchvision 0.19.0 with CUDA 12.1 on Linux. The tests below use CPU-sized inputs. The `round3` and `round4*` directories contain original imports required by the strict baseline wrapper. Launch different experiment entry points in separate processes because each selects its own `bootstrap` module.
