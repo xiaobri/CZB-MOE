@@ -80,9 +80,18 @@ python "$EXP/fair_analysis_20261115/check_recording_selection.py" "$STUDY" fresh
 
 The original comparison used nondeterministic GPU kernels. Shared initialization and identical sampled indices and batch order give a paired training comparison. A new fit may yield different probabilities and F1. The raw replay records describe the archived selected models. The private training inputs and weights are required to repeat that check.
 
+## Recompute the operating-point analysis
+
+The public [threshold counts](results/selected_operating_points.json) contain the TP and FP counts at all 99 original grid thresholds for the selected baseline and full-model checkpoints. The same file gives the number of windows flagged by only one model or both, broken down by true label. For the budget comparison use the first full-model grid threshold with no more false positives than the baseline at its F1-selected threshold. To regenerate the file from authorized prediction archives after the runs above, use the following command. Its output contains only aggregate counts.
+
+```bash
+python tools/operating_points.py --baseline "$CONTROL/formal/baseline" \
+  --candidate "$STUDY/formal/fresh_both" --output reproduced_operating_points.json
+```
+
 ## Build the paper
 
-The paper uses the official ICML 2027 LaTeX style in preprint mode. Its figure is included. Build with a TeX Live installation and BibTeX, or with Tectonic.
+The paper uses the official ICML 2026 LaTeX style in preprint mode. The compiled PDF contains eight pages of main text. Both figures and their aggregate source data are included. Build with a TeX Live installation and BibTeX, or with Tectonic.
 
 ```bash
 cd paper
@@ -91,4 +100,4 @@ latexmk -pdf main.tex
 tectonic main.tex
 ```
 
-To regenerate the figure from the epoch CSV, install matplotlib 3.10.9 in a plotting environment and run `python tools/figure.py` from the repository root. The conference supplies the style, bibliography style and companion files. [Official ICML 2027 style archive](https://media.icml.cc/Conferences/ICML2027/styles/icml2027.zip)
+To regenerate both figures from the epoch CSV and operating-point JSON, install matplotlib 3.10.9 in a plotting environment and run `python tools/figure.py` from the repository root. The conference supplies the style, bibliography style and companion files. [Official ICML 2026 style archive](https://media.icml.cc/Conferences/ICML2026/Styles/icml2026.zip)

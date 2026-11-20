@@ -1,5 +1,6 @@
 """Regenerate the manuscript figure from published epoch-level counts."""
 import csv
+import json
 from pathlib import Path
 
 import matplotlib
@@ -30,3 +31,34 @@ axes[0].legend(loc="lower left", fontsize=6, frameon=False, ncol=2)
 axes[1].set(xlabel="Training epoch", xticks=[1, 5, 10, 15, 20], xlim=(0.5, 20.5))
 fig.tight_layout(pad=0.35)
 fig.savefig(ROOT / "paper/epoch_f1.pdf", metadata={"CreationDate": None, "ModDate": None})
+
+# Show attainable integer counts on the original threshold grid near both operating points.
+
+audits = json.loads((ROOT / "results/selected_operating_points.json").read_text())
+with (ROOT / "results/selected.csv").open() as stream:
+    selected = {(row["method"], int(row["seed"])): row for row in csv.DictReader(stream)}
+fig, axes = plt.subplots(1, 2, sharey=True, figsize=(6.8, 2.5))
+for axis, audit in zip(axes, audits):
+    seed = audit["seed"]
+    for method, label, color, line in (("baseline", "Baseline", "#555555", "--"),
+                                      ("fresh_both", "Full model", "#166a80", "-")):
+        metrics = audit["models"][method]
+        axis.plot(metrics["fp"], metrics["tp"], line, lw=1.15, color=color, label=label)
+        visible = [(x, y) for x, y in zip(metrics["fp"], metrics["tp"]) if 350 <= x <= 1400]
+        axis.scatter(*zip(*visible), s=7, color=color)
+        row = selected[method, seed]
+        axis.scatter(int(row["fp"]), int(row["tp"]), s=48, marker="s", facecolors="white",
+                     edgecolors=color, zorder=4)
+    limit = audit["baseline_fp_budget"]
+    axis.axvline(limit, lw=0.8, linestyle=":", color="#777777")
+    j = audit["lowest_feasible_full_grid_index"]
+    full = audit["models"]["fresh_both"]
+    axis.scatter(full["fp"][j], full["tp"][j], marker="D", s=44, color="#166a80", zorder=4)
+    axis.set(xlim=(350, 1400), ylim=(1650, 2800), title=f"Seed {seed}", xlabel="False-positive windows")
+    axis.tick_params(labelsize=8)
+    axis.spines[["top", "right"]].set_visible(False)
+    axis.grid(axis="y", alpha=0.2)
+axes[0].set_ylabel("True-positive windows")
+axes[1].legend(loc="lower right", frameon=False, fontsize=8)
+fig.tight_layout(pad=0.45)
+fig.savefig(ROOT / "paper/operating_points.pdf", metadata={"CreationDate": None, "ModDate": None})

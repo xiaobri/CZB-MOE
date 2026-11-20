@@ -16,7 +16,9 @@ Positive-class **validation F1**, in percent, on 166,079 windows. The baseline i
 | Refresh negative scores | 71.939 | 72.099 | 72.019 |
 | Refresh both scores | **72.096** | **71.967** | **72.032** |
 
-The full model gains **2.245 percentage points** on average. At its selected operating points it recovers 232 and 141 additional positives, at the cost of 168 and 87 additional false positives. Refreshing both scores adds only 0.023 points over their collection-time counterparts on average, and the sign differs by seed. The absolute gain covers the entire extended model, including its larger temporal readout and auxiliary supervision.
+The full model gains **2.245 percentage points** on average. At its selected operating points it recovers 232 and 141 additional positives, at the cost of 168 and 87 additional false positives. Refreshing both scores adds only 0.023 points over their collection-time counterparts on average, and the sign differs by seed. Under a false-positive budget equal to the baseline count, the full model still detects 28 and 17 more positive windows for the two seeds on the original validation grid. [Threshold sweep and decision overlap](results/selected_operating_points.json)
+
+The absolute gain covers the entire extended model, including its larger temporal readout and auxiliary supervision.
 
 ### How comparable are the runs?
 
@@ -31,4 +33,4 @@ The validation split was repeatedly used to develop methods. Three recording-dir
 - [All 200 epoch results](results/epochs.csv), [sampling hashes](results/sampling.csv), [initialization hashes](results/initialization.csv) and [conditional recording-bootstrap intervals](results/paired_bootstrap.json).
 - [Original and released source digests](results/source_hashes.csv). The release preserves the experiment implementations and maps workstation-specific locations to configurable directories. The EEG files, per-window predictions, recordings, private manifest and checkpoint weights are held separately.
 
-Run `python3 tools/verify_results.py` from a clone to reproduce the headline numbers and check the paired protocol using only the Python standard library. The manuscript uses the official ICML 2027 preprint layout. This repository is a research release. [ICML author instructions](https://icml.cc/Conferences/2027/AuthorInstructions)
+Run `python3 tools/verify_results.py` from a clone to reproduce the headline numbers and check the paired protocol using only the Python standard library. The manuscript has eight pages of main text in the official ICML 2026 preprint layout. The impact statement, references and appendix follow. This repository is a research release. [ICML author instructions](https://icml.cc/Conferences/2026/AuthorInstructions)

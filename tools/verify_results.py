@@ -23,6 +23,34 @@ def check(condition, message):
         raise ValueError(message)
 
 
+def verify_operating_points(selected):
+    records = json.loads((RESULTS / "selected_operating_points.json").read_text())
+    check([r["seed"] for r in records] == list(SEEDS), "Missing grid comparison")
+    grid = [0.01 + i * 0.01 for i in range(99)]
+    for record in records:
+        seed = record["seed"]
+        check(record["thresholds"] == grid, "Wrong threshold grid")
+        overlaps = record["decision_overlap"]
+        for label, count in (("positive", 3471), ("negative", 162608)):
+            check(sum(overlaps[label].values()) == count, "Decision overlap count differs")
+        for method, only in (("baseline", "baseline_only"), ("fresh_both", "full_only")):
+            row = selected[method, seed]
+            index = grid.index(float(row["threshold"]))
+            for field, label in (("tp", "positive"), ("fp", "negative")):
+                counts = record["models"][method][field]
+                check(len(counts) == len(grid) and counts == sorted(counts, reverse=True),
+                      "Counts should decrease as the threshold rises")
+                expected = overlaps[label]["both_positive"] + overlaps[label][only]
+                check(counts[index] == int(row[field]) == expected, "Decision counts disagree")
+        limit = int(selected["baseline", seed]["fp"])
+        full = record["models"]["fresh_both"]
+        feasible = next(i for i, fp in enumerate(full["fp"]) if fp <= limit)
+        check(limit == record["baseline_fp_budget"] and feasible == record["lowest_feasible_full_grid_index"],
+              "Inconsistent false-positive budget")
+        print(f"Seed {seed} at FP budget {limit}: threshold {grid[feasible]:.2f}, "
+              f"TP {full['tp'][feasible]}, FP {full['fp'][feasible]}")
+
+
 def main():
     expected = {(method, seed) for method in METHODS for seed in SEEDS}
     histories = defaultdict(list)
@@ -69,6 +97,7 @@ def main():
         for k in ("tp", "fp", "tn", "fn"):
             check(proof["raw_metric"][k] == int(row[k]), "Raw confusion matrix differs")
 
+    verify_operating_points(selected)
     for row in csv_rows("source_hashes.csv"):
         actual = hashlib.sha256((ROOT / row["path"]).read_bytes()).hexdigest()
         check(actual == row["published_sha256"], f"Unexpected source digest for {row['path']}")
