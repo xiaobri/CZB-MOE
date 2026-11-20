@@ -89,9 +89,31 @@ python tools/operating_points.py --baseline "$CONTROL/formal/baseline" \
   --candidate "$STUDY/formal/fresh_both" --output reproduced_operating_points.json
 ```
 
+## Test the four other hospitals and summarize expert activity
+
+The external study evaluates the Qilu, Tiantan, Chifeng and Xi’an manifests. Each is under `$CZB_STORAGE/test-<site>-dataset` and contains the original window paths, binary target and stored mode. The original CSVs use the mode string `Val` even for these external tests. The evaluator uses the site collection prefix in the manifest to locate the waveform tree. It loads the four original best-F1 checkpoints from the private baseline and candidate folders above, validates the five frozen weights and uses the recorded Xiehe thresholds.
+
+The command below reproduces the original eight-way partition. Use the training environment. The output directory is private because it contains window-level scores. All partitions use native 128-window batches except the last batch at a hospital. Each worker evaluates both models and both seeds on exactly the same rows.
+
+```bash
+EXT="$CZB_RUNS/four_hospitals"
+PIDS=()
+for GPU in 0 1 2 3 4 5 6 7; do
+  CUDA_VISIBLE_DEVICES="$GPU" python tools/external_eval.py \
+    --baseline "$CONTROL/formal/baseline" --candidate "$STUDY/formal/fresh_both" \
+    --storage "$CZB_STORAGE" --output "$EXT" --shard "$GPU" --shards 8 &
+  PIDS+=("$!")
+done
+for PID in "${PIDS[@]}"; do wait "$PID" || exit 1; done
+python tools/summarize_external.py --private "$EXT" --baseline "$CONTROL/formal/baseline" \
+  --candidate "$STUDY/formal/fresh_both" --output results
+```
+
+The public outputs contain aggregate metrics, manifest and checkpoint hashes, and per-class statistics for all six experts. They also cover expert activity on the source validation split using the archived raw-input predictions. To reproduce the separate source-site false-positive-budget sensitivity, run `tools/recording_budget.py` with the original source `--manifest`, the same `--baseline` and `--candidate` directories, and an `--output` JSON path.
+
 ## Build the paper
 
-The paper uses the official ICML 2026 LaTeX style in preprint mode. The compiled PDF contains eight pages of main text. Both figures and their aggregate source data are included. Build with a TeX Live installation and BibTeX, or with Tectonic.
+The paper uses the official ICML 2026 LaTeX style in preprint mode. The compiled PDF contains eight pages of main text. The manuscript figures and their aggregate source data are included. Build with a TeX Live installation and BibTeX, or with Tectonic.
 
 ```bash
 cd paper
@@ -100,4 +122,4 @@ latexmk -pdf main.tex
 tectonic main.tex
 ```
 
-To regenerate both figures from the epoch CSV and operating-point JSON, install matplotlib 3.10.9 in a plotting environment and run `python tools/figure.py` from the repository root. The conference supplies the style, bibliography style and companion files. [Official ICML 2026 style archive](https://media.icml.cc/Conferences/ICML2026/Styles/icml2026.zip)
+To regenerate both figures from the epoch CSV and operating-point JSON, install matplotlib 3.10.9 in a plotting environment and run `python tools/figure.py` from the repository root. Run `python tools/study_figures.py` to regenerate the architecture diagram and all three six-expert figures. The conference supplies the style, bibliography style and companion files. [Official ICML 2026 style archive](https://media.icml.cc/Conferences/ICML2026/Styles/icml2026.zip)

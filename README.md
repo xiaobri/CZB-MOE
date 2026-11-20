@@ -20,6 +20,20 @@ The full model gains **2.245 percentage points** on average. At its selected ope
 
 The absolute gain covers the entire extended model, including its larger temporal readout and auxiliary supervision.
 
+### What transferred to four other hospitals?
+
+All 698,502 external windows were evaluated at the Xiehe-selected checkpoints and thresholds. Each cell averages the two seed-specific F1 scores, in percent.
+
+| Hospital | Windows (positive) | Strict baseline | Full model | Difference |
+| --- | ---: | ---: | ---: | ---: |
+| Qilu | 106,983 (4,946) | 61.89 | 63.77 | +1.88 |
+| Tiantan | 325,755 (4,283) | 42.37 | 41.57 | −0.80 |
+| Chifeng | 46,053 (440) | 42.22 | 45.73 | +3.51 |
+| Xi’an | 219,711 (504) | 24.19 | 31.44 | +7.25 |
+| Equal-site mean | | 42.67 | 45.63 | +2.96 |
+
+At Tiantan both seeds recover more positives and generate more false positives. Xi’an shows the largest F1 gain, but mean recall of the full model there is 21.13%. The appendix reports each seed and separates dense routing weights from expert positive-class scores. [All 16 external results](results/external_sites.csv) · [Six-expert routing heatmaps](paper/expert_routing.pdf) · [Expert scores](paper/expert_scores.pdf) · [Per-expert routing distributions](paper/expert_distributions.pdf) · [Aggregate data](results/expert_activity.csv)
+
 ### How comparable are the runs?
 
 The runs share the manifest, five frozen checkpoints, shared-parameter initialization, per-seed sample order, 20 epochs, 400,000 draws, 3,140 AdamW steps and threshold grid. The extended model uses training acquisition metadata and additional computation. Trainable parameter counts are 365,576 for the baseline and 2,826,520 for the full model. Replaying each selected full-model checkpoint from raw EEG changed zero decisions relative to cached execution. [Protocol](results/protocol.json) · [Raw replay](results/raw_replay.json)

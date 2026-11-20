@@ -1,0 +1,26 @@
+The direct checks covered 4,486 windows in total with zero difference in every checked output. The positive/total window counts were 4,946/106,983 for Qilu, 4,283/325,755 for Tiantan, 440/46,053 for Chifeng, 504/219,711 for Xi'an. Specificity and true-negative counts are available in the accompanying CSV.
+\begin{table}[htbp]\centering\small
+\caption{All four held-site operating points per hospital. P, R, F1, AP, and AUROC are percentages. The original thresholds for baseline are 0.81/0.82 for seeds 3/42. The full model uses 0.95 for both.}\label{tab:externaldetail}
+\begin{tabular}{lllrrrrrrrr}\toprule
+Site & Model & Seed & TP & FP & FN & P & R & F1 & AP & AUROC\\\midrule
+Qilu & Baseline & 3 & 3,073 & 1,979 & 1,873 & 60.83 & 62.13 & 61.47 & 58.22 & 92.91\\
+Qilu & Baseline & 42 & 3,178 & 2,076 & 1,768 & 60.49 & 64.25 & 62.31 & 57.95 & 92.90\\
+Qilu & Full & 3 & 3,244 & 1,940 & 1,702 & 62.58 & 65.59 & 64.05 & 63.68 & 93.90\\
+Qilu & Full & 42 & 3,208 & 1,950 & 1,738 & 62.19 & 64.86 & 63.50 & 62.27 & 93.72\\
+\midrule
+Tiantan & Baseline & 3 & 3,092 & 7,309 & 1,191 & 29.73 & 72.19 & 42.11 & 27.73 & 97.20\\
+Tiantan & Baseline & 42 & 3,210 & 7,570 & 1,073 & 29.78 & 74.95 & 42.62 & 27.64 & 97.21\\
+Tiantan & Full & 3 & 3,228 & 7,988 & 1,055 & 28.78 & 75.37 & 41.65 & 25.31 & 97.40\\
+Tiantan & Full & 42 & 3,247 & 8,125 & 1,036 & 28.55 & 75.81 & 41.48 & 25.28 & 97.38\\
+\midrule
+Chifeng & Baseline & 3 & 145 & 114 & 295 & 55.98 & 32.95 & 41.49 & 39.46 & 93.16\\
+Chifeng & Baseline & 42 & 160 & 145 & 280 & 52.46 & 36.36 & 42.95 & 40.68 & 93.67\\
+Chifeng & Full & 3 & 159 & 123 & 281 & 56.38 & 36.14 & 44.04 & 44.48 & 94.71\\
+Chifeng & Full & 42 & 179 & 136 & 261 & 56.83 & 40.68 & 47.42 & 45.57 & 94.59\\
+\midrule
+Xi'an & Baseline & 3 & 72 & 40 & 432 & 64.29 & 14.29 & 23.38 & 19.08 & 71.52\\
+Xi'an & Baseline & 42 & 78 & 42 & 426 & 65.00 & 15.48 & 25.00 & 19.88 & 72.57\\
+Xi'an & Full & 3 & 105 & 61 & 399 & 63.25 & 20.83 & 31.34 & 24.06 & 78.27\\
+Xi'an & Full & 42 & 108 & 73 & 396 & 59.67 & 21.43 & 31.53 & 23.92 & 76.16\\
+\bottomrule\end{tabular}
+\end{table}

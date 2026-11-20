@@ -1,0 +1,68 @@
+{
+  "source_site": "xiehe",
+  "selection": "Source validation best F1 checkpoint and threshold, fixed before external inference.",
+  "checkpoints": {
+    "baseline_3": {
+      "epoch": 2,
+      "sha256": "99c2b50e87dc9852e1ad713b02a50f2f5b5561eaa26634e755314021d60798c4",
+      "threshold": 0.81
+    },
+    "baseline_42": {
+      "epoch": 5,
+      "sha256": "5cb460497bf3b50794b158f1aa4e59614f7e36369a5225fb3e4793b4e065f5cb",
+      "threshold": 0.8200000000000001
+    },
+    "fresh_both_3": {
+      "epoch": 5,
+      "sha256": "dce76df8d54017c022e7721cf6205ed5b34eae61a2ac9ac4913ad11e843b39d2",
+      "threshold": 0.9500000000000001
+    },
+    "fresh_both_42": {
+      "epoch": 4,
+      "sha256": "ab3cbc633fdf1300e1bff38779e0cb09b6dc8f731328ddb9785781e8768931f0",
+      "threshold": 0.9500000000000001
+    }
+  },
+  "hospitals": {
+    "qilu": {
+      "manifest_sha256": "1f8b1058a4724e512fccb1e65e85a86646fbb02fa586c4d5c478cddc857d5c17",
+      "windows": 106983,
+      "positives": 4946,
+      "partitions": 8,
+      "native_batch_size": 128,
+      "direct_check_windows": 1127,
+      "maximum_direct_output_difference": 0,
+      "inference_script_sha256": "761bbb13f2951b60485953759640f6a9df08cdc182487f685ca294aec1e15284"
+    },
+    "tiantan": {
+      "manifest_sha256": "e6ee3eec71793f5c9600b6a0f23a115f31349373f6f0fdeaedaab9b16583035c",
+      "windows": 325755,
+      "positives": 4283,
+      "partitions": 8,
+      "native_batch_size": 128,
+      "direct_check_windows": 1147,
+      "maximum_direct_output_difference": 0,
+      "inference_script_sha256": "761bbb13f2951b60485953759640f6a9df08cdc182487f685ca294aec1e15284"
+    },
+    "chifeng": {
+      "manifest_sha256": "ec583c917ecf7cd498632b627ee9111151b4251145ba95fd40e0bd6e6deecb46",
+      "windows": 46053,
+      "positives": 440,
+      "partitions": 8,
+      "native_batch_size": 128,
+      "direct_check_windows": 1125,
+      "maximum_direct_output_difference": 0,
+      "inference_script_sha256": "761bbb13f2951b60485953759640f6a9df08cdc182487f685ca294aec1e15284"
+    },
+    "xian": {
+      "manifest_sha256": "be51edb0f33f4e9927e68aed5d8fabed1c3bed14476898078715379ecd411eb2",
+      "windows": 219711,
+      "positives": 504,
+      "partitions": 8,
+      "native_batch_size": 128,
+      "direct_check_windows": 1087,
+      "maximum_direct_output_difference": 0,
+      "inference_script_sha256": "761bbb13f2951b60485953759640f6a9df08cdc182487f685ca294aec1e15284"
+    }
+  }
+}

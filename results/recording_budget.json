@@ -1,0 +1,242 @@
+[
+  {
+    "seed": 3,
+    "fold": 1,
+    "held_recordings": 15,
+    "baseline_epoch": 3,
+    "full_epoch": 5,
+    "baseline_threshold": 0.8,
+    "full_threshold": 0.9500000000000001,
+    "selection_fp_budget": 779,
+    "selection_full_fp": 720,
+    "selection_previous_full_fp": 822,
+    "held_baseline": {
+      "tp": 439,
+      "fp": 397,
+      "fn": 226,
+      "tn": 30779
+    },
+    "held_full": {
+      "tp": 429,
+      "fp": 214,
+      "fn": 236,
+      "tn": 30962
+    }
+  },
+  {
+    "seed": 3,
+    "fold": 2,
+    "held_recordings": 13,
+    "baseline_epoch": 2,
+    "full_epoch": 5,
+    "baseline_threshold": 0.81,
+    "full_threshold": 0.97,
+    "selection_fp_budget": 577,
+    "selection_full_fp": 493,
+    "selection_previous_full_fp": 611,
+    "held_baseline": {
+      "tp": 462,
+      "fp": 189,
+      "fn": 183,
+      "tn": 31542
+    },
+    "held_full": {
+      "tp": 469,
+      "fp": 177,
+      "fn": 176,
+      "tn": 31554
+    }
+  },
+  {
+    "seed": 3,
+    "fold": 3,
+    "held_recordings": 15,
+    "baseline_epoch": 2,
+    "full_epoch": 5,
+    "baseline_threshold": 0.8,
+    "full_threshold": 0.9500000000000001,
+    "selection_fp_budget": 712,
+    "selection_full_fp": 707,
+    "selection_previous_full_fp": 821,
+    "held_baseline": {
+      "tp": 430,
+      "fp": 148,
+      "fn": 231,
+      "tn": 32357
+    },
+    "held_full": {
+      "tp": 486,
+      "fp": 227,
+      "fn": 175,
+      "tn": 32278
+    }
+  },
+  {
+    "seed": 3,
+    "fold": 4,
+    "held_recordings": 16,
+    "baseline_epoch": 2,
+    "full_epoch": 5,
+    "baseline_threshold": 0.81,
+    "full_threshold": 0.97,
+    "selection_fp_budget": 689,
+    "selection_full_fp": 597,
+    "selection_previous_full_fp": 733,
+    "held_baseline": {
+      "tp": 427,
+      "fp": 77,
+      "fn": 280,
+      "tn": 33902
+    },
+    "held_full": {
+      "tp": 431,
+      "fp": 73,
+      "fn": 276,
+      "tn": 33906
+    }
+  },
+  {
+    "seed": 3,
+    "fold": 5,
+    "held_recordings": 13,
+    "baseline_epoch": 7,
+    "full_epoch": 5,
+    "baseline_threshold": 0.8200000000000001,
+    "full_threshold": 0.9500000000000001,
+    "selection_fp_budget": 774,
+    "selection_full_fp": 767,
+    "selection_previous_full_fp": 879,
+    "held_baseline": {
+      "tp": 541,
+      "fp": 154,
+      "fn": 252,
+      "tn": 33063
+    },
+    "held_full": {
+      "tp": 594,
+      "fp": 167,
+      "fn": 199,
+      "tn": 33050
+    }
+  },
+  {
+    "seed": 42,
+    "fold": 1,
+    "held_recordings": 15,
+    "baseline_epoch": 7,
+    "full_epoch": 18,
+    "baseline_threshold": 0.8200000000000001,
+    "full_threshold": 0.9400000000000001,
+    "selection_fp_budget": 583,
+    "selection_full_fp": 542,
+    "selection_previous_full_fp": 613,
+    "held_baseline": {
+      "tp": 406,
+      "fp": 274,
+      "fn": 259,
+      "tn": 30902
+    },
+    "held_full": {
+      "tp": 403,
+      "fp": 200,
+      "fn": 262,
+      "tn": 30976
+    }
+  },
+  {
+    "seed": 42,
+    "fold": 2,
+    "held_recordings": 13,
+    "baseline_epoch": 5,
+    "full_epoch": 5,
+    "baseline_threshold": 0.8200000000000001,
+    "full_threshold": 0.98,
+    "selection_fp_budget": 621,
+    "selection_full_fp": 441,
+    "selection_previous_full_fp": 630,
+    "held_baseline": {
+      "tp": 483,
+      "fp": 201,
+      "fn": 162,
+      "tn": 31530
+    },
+    "held_full": {
+      "tp": 448,
+      "fp": 154,
+      "fn": 197,
+      "tn": 31577
+    }
+  },
+  {
+    "seed": 42,
+    "fold": 3,
+    "held_recordings": 15,
+    "baseline_epoch": 5,
+    "full_epoch": 4,
+    "baseline_threshold": 0.8200000000000001,
+    "full_threshold": 0.9600000000000001,
+    "selection_fp_budget": 669,
+    "selection_full_fp": 543,
+    "selection_previous_full_fp": 680,
+    "held_baseline": {
+      "tp": 440,
+      "fp": 153,
+      "fn": 221,
+      "tn": 32352
+    },
+    "held_full": {
+      "tp": 459,
+      "fp": 182,
+      "fn": 202,
+      "tn": 32323
+    }
+  },
+  {
+    "seed": 42,
+    "fold": 4,
+    "held_recordings": 16,
+    "baseline_epoch": 5,
+    "full_epoch": 5,
+    "baseline_threshold": 0.8200000000000001,
+    "full_threshold": 0.98,
+    "selection_fp_budget": 744,
+    "selection_full_fp": 535,
+    "selection_previous_full_fp": 747,
+    "held_baseline": {
+      "tp": 429,
+      "fp": 78,
+      "fn": 278,
+      "tn": 33901
+    },
+    "held_full": {
+      "tp": 422,
+      "fp": 60,
+      "fn": 285,
+      "tn": 33919
+    }
+  },
+  {
+    "seed": 42,
+    "fold": 5,
+    "held_recordings": 13,
+    "baseline_epoch": 5,
+    "full_epoch": 4,
+    "baseline_threshold": 0.8200000000000001,
+    "full_threshold": 0.9600000000000001,
+    "selection_fp_budget": 677,
+    "selection_full_fp": 583,
+    "selection_previous_full_fp": 727,
+    "held_baseline": {
+      "tp": 559,
+      "fp": 145,
+      "fn": 234,
+      "tn": 33072
+    },
+    "held_full": {
+      "tp": 569,
+      "fp": 142,
+      "fn": 224,
+      "tn": 33075
+    }
+  }
+]

@@ -51,6 +51,75 @@ def verify_operating_points(selected):
               f"TP {full['tp'][feasible]}, FP {full['fp'][feasible]}")
 
 
+def verify_recording_budget():
+    runs = json.loads((RESULTS / "recording_budget.json").read_text())
+    ref = json.loads((RESULTS / "fresh_both_recording_selection.json").read_text())["seeds"]
+    check(len(runs) == 10, "Expected two sets of five held folds")
+    for seed in SEEDS:
+        folds = sorted((r for r in runs if r["seed"] == seed), key=lambda r:r["fold"])
+        check([r["fold"] for r in folds] == list(range(1,6)), "Incomplete held folds")
+        check(sum(r["held_recordings"] for r in folds) == 72, "Wrong recording coverage")
+        for r in folds:
+            n = r["selection_fp_budget"]
+            check(r["selection_full_fp"] <= n and
+                  (r["selection_previous_full_fp"] is None or r["selection_previous_full_fp"] > n),
+                  "Candidate did not use the first feasible grid point")
+            b, f = r["held_baseline"], r["held_full"]
+            check(b["tp"] + b["fn"] == f["tp"] + f["fn"] and b["fp"] + b["tn"] == f["fp"] + f["tn"],
+                  "Fold denominators differ")
+            prev = ref[str(seed)]
+            i = r["fold"] - 1
+            check([b[k] for k in ("tp","fp","fn")] == prev["baseline"]["folds"][i]["held_counts"] and
+                  r["full_epoch"] == prev["candidate"]["folds"][i]["selected_epoch"], "Fold selection differs")
+
+
+def verify_external(selected):
+    sites = ("qilu", "tiantan", "chifeng", "xian")
+    external = csv_rows("external_sites.csv")
+    protocol = json.loads((RESULTS / "external_protocol.json").read_text())
+    metrics = {}
+    expected = {(site, method, seed) for site in sites for method in ("baseline", "fresh_both") for seed in SEEDS}
+    for r in external:
+        key = r["site"], r["method"], int(r["seed"])
+        check(key not in metrics, "Duplicate external result")
+        ref = selected[key[1:]]
+        check(int(r["epoch"]) == int(ref["epoch"]) and float(r["threshold"]) == float(ref["threshold"]),
+              "External selection differs from the source")
+        tp, fp, fn, tn = (int(r[c]) for c in ("tp", "fp", "fn", "tn"))
+        n = tp + fp + fn + tn
+        site = protocol["hospitals"][key[0]]
+        check(n == int(r["windows"]) == site["windows"] and tp+fn == int(r["positives"]) == site["positives"],
+              "External coverage mismatch")
+        check(site["direct_check_windows"] > 0 and site["maximum_direct_output_difference"] == 0,
+              "Native forward comparison missing")
+        for name, value in (("f1",2*tp/(2*tp+fp+fn)), ("precision",tp/max(1,tp+fp)), ("recall",tp/(tp+fn)),
+                            ("specificity",tn/(tn+fp)), ("accuracy",(tp+tn)/n)):
+            check(math.isclose(float(r[name]), value, abs_tol=1e-12), f"External {name} mismatch")
+        metrics[key] = r
+    check(set(metrics) == expected, "Missing hospital, method or seed")
+
+    activity = defaultdict(dict)
+    for r in csv_rows("expert_activity.csv"):
+        key = r["site"], r["method"], int(r["seed"]), int(r["label"])
+        check(r["expert"] not in activity[key], "Duplicate expert activity")
+        activity[key][r["expert"]] = r
+    all_sites = (*sites, "xiehe")
+    check(set(activity) == {(site,m,s,y) for site in all_sites for m in ("baseline","fresh_both")
+                            for s in SEEDS for y in (0,1)}, "Incomplete activity groups")
+    for (site, method, seed, y), group in activity.items():
+        check(set(group) == {"frontal","left_temporal","right_temporal","centro_parietal","occipital","redundancy"},
+              "Incomplete expert panel")
+        val = selected[method,seed] if site == "xiehe" else metrics[site,method,seed]
+        n = int(val["tp"]) + int(val["fn"]) if y else int(val["tn"]) + int(val["fp"])
+        check(all(int(v["windows"]) == n for v in group.values()), "Wrong activity denominator")
+        check(sum(int(v["top_weight_windows"]) for v in group.values()) == n, "Highest-weight counts differ")
+        check(abs(sum(float(v["mean_weight"]) for v in group.values()) - 1) < 1e-5, "Invalid routing mass")
+        for v in group.values():
+            check(0 <= float(v["weight_q25"]) <= float(v["weight_median"]) <= float(v["weight_q75"]) <= 1,
+                  "Invalid routing quantiles")
+    print("Verified four external hospitals, 16 operating points and 240 class-conditional expert summaries.")
+
+
 def main():
     expected = {(method, seed) for method in METHODS for seed in SEEDS}
     histories = defaultdict(list)
@@ -97,6 +166,8 @@ def main():
         for k in ("tp", "fp", "tn", "fn"):
             check(proof["raw_metric"][k] == int(row[k]), "Raw confusion matrix differs")
 
+    verify_recording_budget()
+    verify_external(selected)
     verify_operating_points(selected)
     for row in csv_rows("source_hashes.csv"):
         actual = hashlib.sha256((ROOT / row["path"]).read_bytes()).hexdigest()

@@ -16,7 +16,7 @@
 ]
 \printAffiliationsAndNotice{}
 \begin{abstract}
-Can a six-expert EEG classifier recover more positive windows from the same training draws? We reuse five frozen regional experts and one global expert, learn how to pool temporal evidence, and fit a correction from positive--negative pairs within training acquisition groups. On 166,079 validation windows, mean positive-class F1 rises from 69.787 to 72.032 across two paired seeds. The full model detects 232 and 141 additional positives at the selected thresholds, with 168 and 87 additional false positives. Recomputing the scores of stored comparisons adds only 0.023 F1 points on average over retaining the original scores. The validation split guided method development, and performance on new patients remains open.
+Can a six-expert EEG classifier recover more positive windows from the same training draws? We reuse five frozen regional experts and one global expert, learn how to pool temporal evidence, and fit a correction from positive--negative pairs within training acquisition groups. On 166,079 validation windows, mean positive-class F1 rises from 69.787 to 72.032 across two paired seeds. The full model detects 232 and 141 additional positives at the selected thresholds, with 168 and 87 additional false positives. Recomputing the scores of stored comparisons adds only 0.023 F1 points on average over retaining the original scores. With the source thresholds locked, the full model improves at three of four external hospitals and raises equal-site mean F1 from 42.67 to 45.63. The development split guided method selection, and patient identifiers remain unverified.
 \end{abstract}
 
 \section{Introduction}
@@ -28,7 +28,7 @@ Our model learns a temporal readout and then estimates a margin correction from 
 
 A historical negative creates a second question. Between its arrival and its use in a comparison, the parent classifier may have changed. Its original score can also reflect training-time dropout. Recomputing that score costs another forward pass through the parent readout. We therefore distinguish the performance of the full model relative to the six-expert baseline from the incremental value of recomputing scores. Separate case-only, control-only, both-side and collection-time fits make the latter comparison possible.
 
-The two seeds give different answers about score refresh, but agree on the overall comparison. F1 gains over baseline are 2.707 and 1.783 percentage points. Against collection-time scores, refreshing both sides changes F1 by $+0.228$ and $-0.182$ points. We also examine decisions at the same false-positive budget, compare the fitted correction with its immediate parent inside the same run, and vary the recordings used to select an operating point. These analyses address different sources of the reported gain on a validation split that has been reused for method development.
+The two seeds give different answers about score refresh, but agree on the overall comparison. F1 gains over baseline are 2.707 and 1.783 percentage points. Against collection-time scores, refreshing both sides changes F1 by $+0.228$ and $-0.182$ points. We also examine decisions at the same false-positive budget, compare the fitted correction with its immediate parent inside the same run, and vary the recordings used to select an operating point. We then test the locked checkpoints on every available window from four external hospitals. The source-validation and external results answer distinct questions about selection and transfer.
 
 \section{Related Work}
 \paragraph{Fusing EEG representations.}
@@ -45,13 +45,18 @@ EEG-FM-Bench examines how standardized protocols affect comparison of EEG repres
 
 \section{Six Experts and a Temporal Readout}
 \subsection{The shared six-expert model}
-Each example is a window $x\in\mathbb{R}^{19\times 2000}$ with binary target $y$. For regional source $r\in\{1,\ldots,5\}$, write $h_r\in\mathbb{R}^{128}$ for its frozen representation and $\ell_r\in\mathbb{R}^2$ for its logits. The roles are frontal, left temporal, right temporal, centro-parietal and occipital. The names identify the sources of the distilled weights. In this implementation the loader passes the full 19-channel input to each source. A score assigned to a regional expert therefore does not establish localization to electrodes in that region.
+Figure~\ref{fig:architecture} follows one window from its five frozen representations to the corrected output. Each example is a window $x\in\mathbb{R}^{19\times 2000}$ with binary target $y$. For regional source $r\in\{1,\ldots,5\}$, write $h_r\in\mathbb{R}^{128}$ for its frozen representation and $\ell_r\in\mathbb{R}^2$ for its logits. The roles are frontal, left temporal, right temporal, centro-parietal and occipital. The names identify the sources of the distilled weights. In this implementation the loader passes the full 19-channel input to each source. A score assigned to a regional expert therefore does not establish localization to electrodes in that region.
 
 A two-layer Transformer takes the five regional representations as tokens with learned positional embeddings. Its normalized tokens are averaged to form a global representation $h_6$ and a classification head produces $\ell_6$. A separate dense router takes the concatenation of all six representations. Its six logits are divided by temperature 2 before softmax, producing weights $\pi_r(x)$. The baseline logits are
 \begin{equation}
   \ell_{\mathrm{base}}(x)=\sum_{r=1}^{6}\pi_r(x)\ell_r(x).
 \end{equation}
 The routing input uses a detached copy of $h_6$. The global expert still receives gradients through its classifier and the baseline supervision. During inference the six experts contribute through this same dense mixture. None of the four score-refresh policies changes how many experts a window requires.
+
+\begin{figure*}[t]\centering
+\includegraphics[width=0.94\textwidth]{architecture.pdf}
+\caption{Six-expert prediction and the pair correction. The global expert takes the five regional representations as input. The temporal readout adjusts the experts' evidence before dense fusion. The correction projects a regional descriptor onto coefficients estimated from same-acquisition training pairs. The group and historical controls enter only during training.}\label{fig:architecture}
+\end{figure*}
 
 \subsection{Recovering temporal evidence}
 The frozen encoders expose an activation sequence with 63 temporal positions. For each regional source we keep eight consecutive segment means of its projected activations before LayerNorm. The segments have lengths $(8,8,8,8,8,8,8,7)$. Let $b_{rj}$ denote the pre-normalization vector and $q_j$ its segment length divided by 63. The reference $\sum_j q_j b_{rj}$ therefore accounts for the shorter last segment. Giving it one eighth of the mass would introduce a difference even before learning any preference for a particular segment.
@@ -112,34 +117,9 @@ The memory stores descriptors, a risk key and a scalar parent margin for each el
 
 Table~\ref{tab:arms} describes the four variants. When case refresh is enabled, eligible positives are re-scored before both the marginal calibration update and the pair comparisons. When control refresh is enabled, the model re-scores the union of selected slots in the batch and stores their new margins. Reuse of a control can therefore benefit the next comparison until eviction. The risk key and existing descriptor stay as collected. The full method calls the current parent in evaluation mode without gradients and restores its previous training modes afterward.
 
-\begin{table}[t]\centering\small
-\caption{Source of the scalar margins when a pair is formed. Each arm is trained from the same shared initialization for a given seed.}\label{tab:arms}
-\begin{tabular}{lll}\toprule
-Arm & Positive margin & Negative margin\\\midrule
-Collection time & As collected & As collected\\
-Refresh cases & Current parent & As collected\\
-Refresh controls & As collected & Current parent\\
-Refresh both & Current parent & Current parent\\\bottomrule
-\end{tabular}
-\end{table}
 
-\begin{algorithm}[t]
-\caption{One training batch in the full method}\label{alg:update}
-\begin{algorithmic}[1]
-\STATE Compute parent outputs and descriptors for the batch.
-\FOR{each eligible positive in the batch}
-  \STATE Select prior same-group controls at risk quantiles.
-\ENDFOR
-\STATE Re-score eligible cases and selected control slots with the current evaluation-mode parent.
-\STATE Update the calibration statistics using the batch.
-\FOR{each selected case--control pair}
-  \STATE Accumulate its contributions to $H,b$ in Eqs.~\ref{eq:gram}--\ref{eq:rhs}.
-\ENDFOR
-\STATE Insert the batch's eligible negatives into the ring.
-\STATE Update coefficients when due using Eq.~\ref{eq:solve}.
-\STATE Apply the scheduled parent optimizer update.
-\end{algorithmic}
-\end{algorithm}
+
+
 
 \section{Experimental Protocol}
 \subsection{Data and sampling}
@@ -159,7 +139,7 @@ The strict baseline has 365,576 trainable parameters. The full model has 2,826,5
 \subsection{Endpoint and model selection}
 We classify a window as positive when its score is strictly greater than the threshold. At each epoch we scan the 99 thresholds from 0.01 to 0.99 in steps of 0.01. We select the epoch and threshold that maximize positive-class window F1, $2\mathrm{TP}/(2\mathrm{TP}+\mathrm{FP}+\mathrm{FN})$, separately for every run. The reported mean averages the two seed-specific F1 values on the same validation windows. It is the performance summary of two training runs, with no prediction averaging across seeds. Average precision (AP) uses the complete ordering of scores and is reported separately.
 
-The validation split was inspected during method development. We preserve this endpoint to answer the narrow question about improvement under the original selection protocol. To understand sensitivity we also select epochs by AP, inspect the parent and corrected heads within the same run, constrain the number of false positives, and select operating points with recording folds held out. None of these analyses introduces new training windows or an independent test cohort.
+The validation split was inspected during method development. We preserve this endpoint to answer the narrow question about improvement under the original selection protocol. To understand sensitivity we also select epochs by AP, inspect the parent and corrected heads within the same run, constrain the number of false positives, and select operating points with recording folds held out. These sensitivity analyses revisit the same source cohort. The four-hospital test below uses separate manifests.
 
 \section{Results}
 \subsection{The combined model and the refresh ablation}
@@ -207,20 +187,14 @@ To distinguish a change in ranking from a willingness to issue more alerts, we k
 
 For seed 3 the baseline budget is 766 false positives. At 0.96 the full model still produces 814, so the first feasible grid point is 0.97. It detects 2,279 positives and flags 670 negatives, gaining 28 true positives while using 96 fewer false positives than the baseline. For seed 42 the first feasible threshold is 0.96, giving 2,338 true positives and 725 false positives against a budget of 822. The gain in detections is 17 with 97 fewer false positives. At these thresholds the full model's F1 is 71.00 and 71.56. The 72.032 mean describes a more permissive operating point. Most of the gain in detections at that point is coupled to a higher alert count.
 
-\begin{figure*}[t]\centering
-\includegraphics[width=0.90\textwidth]{operating_points.pdf}
-\caption{True positives attainable at the original threshold grid near the two chosen operating points. Dots are grid points, squares mark each model's F1-selected threshold, and the vertical line is the baseline false-positive count. The diamond is the full model's lowest grid threshold satisfying that budget. Connecting lines guide the eye. Only the marked grid points enter the analysis.}\label{fig:budget}
-\end{figure*}
+
 
 The difference in the spacing of points in Figure~\ref{fig:budget} is consequential. For seed 3, moving the full model from 0.95 to 0.97 removes 264 false positives but also loses 204 true positives. A common numeric threshold for both models would mix differences in score scale with differences in ordering. A common count budget makes the desired error constraint explicit. The grid leaves some of that budget unused in both seeds, so this calculation is conservative about attainable recall between adjacent grid values.
 
 \subsection{Dependence on the checkpoint criterion}
 Figure~\ref{fig:curve} follows the best grid F1 at each epoch. A comparison at the same epoch favors the full model over the strict baseline in all 20 epochs for each seed. Median same-epoch gains are 2.03 and 2.57 points, respectively. The final-epoch scores are 69.80 and 70.93 for the full model, compared with 68.46 and 68.65 for baseline. Consequently, the direction of the paired difference persists at the end of training even though the 72-point mean depends on selecting an earlier checkpoint.
 
-\begin{figure}[t]\centering
-\includegraphics[width=\columnwidth]{epoch_f1.pdf}
-\caption{Best validation-grid F1 at each epoch. Dots mark the checkpoints used in the primary comparison. Each trace covers one training run.}\label{fig:curve}
-\end{figure}
+
 
 AP answers a different question about the same scores. At the F1-selected epoch the full model has slightly lower AP for both seeds, despite higher AUROC and F1. If we choose the epoch by AP instead, the peak AP values for seed 3 are 75.53\% for baseline and 77.87\% for the full model. The corresponding values for seed 42 are 75.76\% and 77.28\%. Evaluating grid F1 at those AP-selected checkpoints gives 69.27 versus 71.46 and 70.15 versus 71.59. This comparison still uses validation to select the threshold, but shows how the conclusion about crossing a particular F1 target depends on which statistic selects the weights.
 
@@ -244,24 +218,30 @@ For seed 3 the full model selects epoch 5 and threshold 0.95 on every four-fold 
 
 The pooled results conceal considerable differences between folds. For seed 3 the full model's advantage ranges from 1.33 to 7.10 points, with the largest gain on the fold where the baseline performs worst. For seed 42 all five held-fold differences are positive, but the smallest is only 0.014 points and the largest is 1.24. Both seeds use exactly the same recording partition. The contrasting gain ranges illustrate sensitivity to the trained model and its selected operating point as well as to the recording mix. Five overlapping selection subsets cannot establish a distribution of effects over independent cohorts. The appendix gives their selected operating points.
 
+\paragraph{Transferring the false-positive budget.}
+Using the same fold-specific epochs, we also matched the full model to the baseline false-positive count on the four selection folds. We then applied both thresholds to the held recordings. Across all held windows, seed 3 gained 110 true positives and issued 107 fewer false positives (F1 71.50 versus 68.27). Seed 42 lost 16 true positives and issued 113 fewer false positives (70.69 versus 69.80). The full model exceeded the baseline's false-positive count on two held folds for seed 3 and one for seed 42. Meeting a budget on the selection recordings thus gave neither a per-fold guarantee nor a consistent recall gain on held recordings.
+
 \subsection{A proxy for cross-split identity}
 The manifest contains ten repeated file-path rows and no exact training--validation path overlap. Three recording-directory basenames occur in both splits. A repeated basename can correspond to the same person, a reused naming convention or a different recording. Conversely, a person may appear under multiple names. We can test the effect of excluding these names while keeping the limits of this proxy explicit.
 
 The exclusion removes 2,582 validation windows, including 394 positives. These windows account for about 1.55\% of validation windows but 11.35\% of its positives. Holding the original thresholds and epochs fixed gives full-model F1 of 70.30 and 70.13 on the retained windows. The paired gains over baseline are 3.30 and 2.15 points. The absolute scores drop and the paired gains remain positive. Because F1 depends on class prevalence and because this subset can differ in difficulty, that drop alone cannot quantify leakage. Within the removed subset itself, the full model gains 12 and 6 true positives while adding 29 and 14 false positives. On the retained subset it gains 220 and 135 true positives, accounting for most of the net increase in detections. This decomposition is possible with fixed operating points because TP and FP counts add across disjoint sets. F1 is nonlinear, so analogous subtraction of two F1 scores does not identify the contribution of the excluded recordings. Verifying patient identity would require information outside the manifest.
 
+\section{Transfer to Four External Hospitals}
+We evaluated all binary-labeled test windows supplied by Qilu, Tiantan, Chifeng and Xi'an (698,502 windows total). For each seed we locked the original Xiehe-selected checkpoint and threshold before external inference. All four sites used identical channel ordering, input scaling and window length. The model saw neither the hospital identifier nor its labels at prediction time. We used each hospital's labels only to evaluate the resulting scores. The mean for a hospital is the arithmetic mean of its two seed-specific window F1s.
+\input{external_summary}
 \section{Discussion and Conclusion}
 The experiments distinguish three decisions. Adding the entire temporal and pair-based readout increases F1 across both seeds. Applying the fitted pair correction to its immediate parent produces a smaller gain that depends on which head selects the checkpoint. Recomputing stale margins for that correction changes mean F1 by only 0.023 points and has opposite effects by seed. If training compute is constrained, collection-time scoring is already competitive on the observed data. The present comparisons do not determine whether the same choice would be best for a stream with more eligible positive windows or a faster-changing parent.
 
 For an application with a false-alert constraint, the decision budget is as important as the architecture. At the primary operating points the full model adds 232 and 141 true positives. Within the strict baseline's false-positive budget on the same grid, the increases are 28 and 17. Both observations matter: the six-source readout improves the trade-off locally, and the headline recall gains are larger than the gains achievable at the original false-positive count. A window flagged twice in one episode could contribute two false positives here, so none of these counts is a rate of alerts per recording hour or per patient.
 
-The principal limitations are the repeated use of one development split, two training seeds, unequal model capacity and unverified patient identities. A decisive follow-up would lock the readout and operating point, establish patient-level separation before splitting data and compare on another cohort without further method selection. A parameter- and compute-matched temporal parent trained without pair supervision would answer a different question: how much of the observed improvement can be purchased by capacity and additional supervised readouts alone? Under the original training schedule the current evidence establishes a two-seed mean positive-class validation F1 of 72.032 and specifies the conditions under which that number changes.
+The principal limitations are repeated selection on one development split, two training seeds, unequal model capacity and unverified patient identities. A prospective follow-up would verify patient identities and lock the target definition and alert policy before collecting data. A parameter- and compute-matched temporal parent trained without pair supervision would answer a different question: how much of the observed improvement can be purchased by capacity and additional supervised readouts alone? The two-seed F1 is 72.032 on the source validation set and 45.63 when each of the four external hospitals is weighted equally. The difference between these endpoints is central to interpreting the source result.
 
 \clearpage
 \section*{Impact Statement}
-The model classifies individual EEG windows. The observed gains in sensitivity are accompanied by extra false positives at the F1-selected thresholds. Using these results to guide clinical decisions would require an independently validated target definition, patient-level evaluation and an assessment of the consequences of alerting on consecutive windows. The release provides aggregate validation statistics and code. Recording identifiers and waveforms remain with the data custodians.
+The model classifies individual EEG windows. The observed gains in sensitivity are accompanied by extra false positives at the F1-selected thresholds. Using these results to guide clinical decisions would require a clinically validated target definition, patient-level evaluation and an assessment of the consequences of alerting on consecutive windows. The release provides aggregate validation statistics and code. Recording identifiers and waveforms remain with the data custodians.
 
 \section*{AI Disclosure Statement}
-An OpenAI coding assistant helped examine the implementation and run records, locate literature, draft the manuscript, generate figures and package the reproducibility material. The decision-overlap and threshold-budget analyses use stored validation predictions. This public preprint awaits independent review by the project authors.
+An OpenAI coding assistant helped examine the implementation and run records, locate literature, draft the manuscript, generate figures and package the reproducibility material. The decision-overlap and threshold-budget analyses use stored validation predictions. External and expert-activity tables summarize model outputs on the original manifests. This public preprint awaits independent review by the project authors.
 
 \bibliography{references}
 \bibliographystyle{icml2026}
@@ -285,7 +265,7 @@ Seed & True label & Both & Base only & Full only & Neither\\\midrule
 \end{tabular}
 \end{table}
 
-The recording-fold analysis selects the first threshold tying for maximum F1 at a given epoch and the last epoch tying for maximum F1 across epochs. Each validation window contributes to exactly one held-fold confusion matrix. The folder bootstrap instead keeps one epoch and threshold per model fixed throughout the resamples. The two analyses resample or hold out different quantities and should be read separately.
+The recording-fold analysis selects the first threshold tying for maximum F1 at a given epoch and the last epoch tying for maximum F1 across epochs. Each validation window contributes to exactly one held-fold confusion matrix. The folder bootstrap instead keeps one epoch and threshold per model fixed throughout the resamples. The false-positive-budget transfer uses the same fold-specific epochs and baseline operating points, then selects the lowest full-model grid threshold that satisfies the baseline count on the four selection folds. Fold-level selection and held counts for that analysis accompany the public results.
 \begin{table}[h]\centering\small
 \caption{Operating points transferred across validation recording folds. Each entry gives the epoch, threshold and held-fold F1 (percent). Each model chooses its operating point using the other four folds.}\label{tab:folds}
 \begin{tabular}{lcccc}\toprule
@@ -298,4 +278,67 @@ Fold & Baseline & Full & Baseline & Full \\\midrule
 5 & 7 / 0.82 / 72.72 & 5 / 0.95 / 76.45 & 5 / 0.82 / 74.68 & 4 / 0.95 / 75.48 \\
 \bottomrule\end{tabular}
 \end{table}
+
+\clearpage
+\section{Model and Operating-Point Diagnostics}
+Algorithm~\ref{alg:update} describes the full training step. The descriptors and risk key of a negative retain their collection-time values. Only the selected negative's scalar parent margin is overwritten when it is refreshed. Table~\ref{tab:arms} identifies which inputs change in each separately trained arm.
+\begin{table}[htbp]\centering\small
+\caption{Source of the scalar margins when a pair is formed. Each arm is trained from the same shared initialization for a given seed.}\label{tab:arms}
+\begin{tabular}{lll}\toprule
+Arm & Positive margin & Negative margin\\\midrule
+Collection time & As collected & As collected\\
+Refresh cases & Current parent & As collected\\
+Refresh controls & As collected & Current parent\\
+Refresh both & Current parent & Current parent\\\bottomrule
+\end{tabular}
+\end{table}
+\begin{algorithm}[htbp]
+\caption{One training batch in the full method}\label{alg:update}
+\begin{algorithmic}[1]
+\STATE Compute parent outputs and descriptors for the batch.
+\FOR{each eligible positive in the batch}
+  \STATE Select prior same-group controls at risk quantiles.
+\ENDFOR
+\STATE Re-score eligible cases and selected control slots with the current evaluation-mode parent.
+\STATE Update the calibration statistics using the batch.
+\FOR{each selected case--control pair}
+  \STATE Accumulate its contributions to $H,b$ in Eqs.~\ref{eq:gram}--\ref{eq:rhs}.
+\ENDFOR
+\STATE Insert the batch's eligible negatives into the ring.
+\STATE Update coefficients when due using Eq.~\ref{eq:solve}.
+\STATE Apply the scheduled parent optimizer update.
+\end{algorithmic}
+\end{algorithm}
+\paragraph{Budget transfer and checkpoint selection.}
+Figure~\ref{fig:budget} uses the source-validation selected checkpoints. The dotted line fixes the number of false-positive windows at each baseline's operating point. For comparison, the recording-fold budget analysis selects operating points on other recordings, and allows a held fold to exceed its selection budget. Figure~\ref{fig:curve} gives the complete F1 trajectories behind checkpoint selection.
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.90\textwidth]{operating_points.pdf}
+\caption{True positives attainable at the original threshold grid near the two chosen operating points. Dots are grid points, squares mark each model's F1-selected threshold, and the vertical line is the baseline false-positive count. The diamond is the full model's lowest grid threshold satisfying that budget. Connecting lines guide the eye. Only the marked grid points enter the analysis.}\label{fig:budget}
+\end{figure}
+\begin{figure}[htbp]\centering
+\includegraphics[width=0.54\textwidth]{epoch_f1.pdf}
+\caption{Best validation-grid F1 at each epoch. Dots mark the checkpoints used in the primary comparison. Each trace covers one training run.}\label{fig:curve}
+\end{figure}
+\section{External Test Protocol and Per-Seed Results}
+Each site manifest contained both target classes. We used every manifest row in its original order. Native batches contain 128 windows with a possible shorter last batch. The five frozen expert files were verified against the metadata of each of the four fitted models. The four fits share the same five convolutional backbones. During evaluation their last feature maps were computed once per batch, and each fit applied its own hooks, classification heads, router and fitted readout. A direct comparison recomputed the complete convolutional forward path on the first batch of every site partition and each partial final batch. It checked the final score, six routing weights and six expert scores against the shared-feature implementation.
+\input{external_detail}
+\clearpage
+\section{How the Six Experts Respond}
+\label{sec:activity}
+For each window we recorded the six dense routing weights and the six expert outputs before the final pair correction. We call the routing weight the expert's activation for this analysis. The weights sum to one across experts on a window. The positive-class expert score is the two-logit softmax output of one expert. Each expert has its own class distribution, so these six scores need not sum to one. The complete classifier also uses temporal and pair corrections. Neither a high weight nor a high score measures the causal importance of a brain region.
+
+Figures~\ref{fig:expertweights} and~\ref{fig:expertscores} group windows by true label, site and seed, keeping the two seeds separate. Each cell is a mean over all windows in that stratum. A negative-heavy hospital therefore cannot mask how an expert responds to its rarer positive windows. Figure~\ref{fig:expertdist} displays the median and interquartile range for each individual expert on positive windows. These intervals describe variation across windows, not uncertainty in a population mean. The accompanying aggregate file also contains the strict baseline, the denominator of each group, and the number of windows in which each expert had the largest weight.
+\input{activity_findings}
+\begin{figure}[htbp]\centering
+\includegraphics[width=.90\textwidth]{expert_routing.pdf}
+\caption{Class-conditional mean routing weights of the full model. Each row sums to 100\% before rounding. Xiehe is the source validation set. The remaining rows are the external hospitals.}\label{fig:expertweights}
+\end{figure}
+\begin{figure}[htbp]\centering
+\includegraphics[width=.90\textwidth]{expert_scores.pdf}
+\caption{Class-conditional mean positive-class score of each expert. A high score on true positives can coexist with a high score on negatives. Values are percentages.}\label{fig:expertscores}
+\end{figure}
+\begin{figure}[htbp]\centering
+\includegraphics[width=.90\textwidth]{expert_distributions.pdf}
+\caption{Routing-weight distributions for the six experts on true positive-class windows, including those the model misses. Points mark medians and whiskers span the 25th to 75th percentiles. The horizontal scale is shared across all panels.}\label{fig:expertdist}
+\end{figure}
 \end{document}
