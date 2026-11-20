@@ -1,0 +1,59 @@
+\clearpage
+\input{component_rows}
+\section{Which components account for the Xiehe F1 gain?}
+\label{sec:components}
+Table~\ref{tab:componentstages} follows the implementation from the original six-expert predictor to the final corrected score. Each row is a separately trained model. Within each seed we verified initialization of the shared core and the order of all 400,000 training draws. Each model selected its checkpoint and threshold on the same 99-point Xiehe validation grid over 20 epochs. We then ran the selected checkpoints on all 166,079 raw validation windows with their thresholds fixed. The historical regional-statistics fit allowed a 32~GiB allocator ceiling. The remaining rows used 4~GiB. Batch size, training draws and optimizer steps were identical. Differences depend on the order in which components enter the model.
+\begin{table}[ht]\centering\small
+\caption{Cumulative component ablation. F1 is positive-class window F1 in percent. The three rightmost columns subtract the preceding row in percentage points. The first added head includes its own supervision.}\label{tab:componentstages}
+\setlength{\tabcolsep}{4pt}\begin{tabular}{@{}lrrrrrr@{}}\toprule
+ &\multicolumn{3}{c}{Xiehe F1}&\multicolumn{3}{c}{Change from preceding fit}\\
+\cmidrule(lr){2-4}\cmidrule(l){5-7}
+Model change & Seed 3 & Seed 42 & Mean & Seed 3 & Seed 42 & Mean\\\midrule
+\ComponentStages
+\bottomrule\end{tabular}
+\end{table}
+
+The first correction contributes 1.861 of the 2.245 points along this sequence. After peak-shape and temporal changes, regional auxiliary supervision contributes 0.236 points and the historical pair correction adds 0.277. Adding temporal pooling and the global adjustment before introducing that regional loss lowers mean F1 by 0.144. The refresh contrast changes sign across seeds. Raw replay at the locked thresholds changes 12 decisions across the 34 model--seed evaluations, with at most two per fit. In particular the collection-time model scores 72.018 on this replay and 72.009 from its stored epoch scores. This accounts for the two estimates of the small mean refresh effect, 0.013 here and 0.023 in the original selection records.
+
+\paragraph{What enters the first correction?}
+A small network reads the six expert scores, the mixture score, the router input features and, for each frozen regional source, the channel-wise mean, maximum and standard deviation over the final activation map. Its bounded output adjusts the binary margin. The original six-expert objective still trains the core. The correction's supervision uses detached core outputs. Its focal loss can weight acquisition groups within each class using capped inverse frequencies and a moving estimate of group risk. Its ranking term compares a positive to up to 16 high-scoring negatives from the same minibatch. This minibatch term is distinct from the later memory of preceding batches.
+
+\begin{table}[ht]\centering\small
+\caption{Fresh fits of the first correction. All rows have 1,775,702 trainable parameters with identical initial weights within seed. The last three rows retain the full weighted and ranked objective and remove inputs by zeroing the corresponding coordinates.}\label{tab:componentfits}
+\begin{tabular}{@{}lrrr@{}}\toprule
+First correction & Seed 3 & Seed 42 & Mean F1\\\midrule
+\ComponentFits
+\bottomrule\end{tabular}
+\end{table}
+
+\paragraph{Factorial contrasts.}
+The four combinations of acquisition weighting and ranking keep the input features, architecture, focal-loss parameters and minibatches fixed. The interaction subtracts the weighting effect without ranking from the weighting effect with ranking. The static-weight control retains category-conditional training frequencies and omits the moving risk multiplier. Masked-input controls preserve the number of parameters but change the information the scorer can exploit. The original and fresh fits of the full first correction use the same recipe. The original trainer permits nondeterministic GPU execution.
+
+\begin{table}[ht]\centering\small
+\caption{Paired, conditional F1 differences in percentage points. The group-pair comparison uses the original historical-pair runs at a common quantile sampling rule. The other contrasts use the fresh first-correction fits.}\label{tab:componenteffects}
+\begin{tabular}{@{}lrrr@{}}\toprule
+Contrast & Seed 3 & Seed 42 & Mean\\\midrule
+\ComponentEffects
+\bottomrule\end{tabular}
+\end{table}
+
+The weighted and ranked head improves on the plain head by 1.899 points. The average weighting effect across the two ranking settings is 1.017 points. The average ranking effect across the two weighting settings is 0.882. This symmetric allocation divides their 0.242-point interaction equally. Both effects have the same sign in both seeds. The separate replication of the full first head reaches 71.413 versus 71.648 for the historical fit. All factorial comparisons use the fresh fits. At the weighted and ranked setting, replacing expert scores alone with scores plus router features adds 0.948 points. Adding activation means adds a further 0.516, whereas including maxima and standard deviations on top of the means changes F1 by $-0.050$. Input and loss contrasts condition on different baselines and overlap.
+
+\paragraph{Readouts within the two original final fits.}
+All intermediate outputs can be inspected in the same fit. Table~\ref{tab:componentheads} uses the epoch logs, which score every head on the same validation windows. The first three columns select the epoch for each head independently. The remaining columns fix the final model's selected epoch (5 or 4) and still allow each head to select its own threshold. These comparisons describe the scores along a single model's computation. The separate fits above also reflect retraining variation.
+\begin{table}[ht]\centering\small
+\caption{Intermediate validation F1 from the original fits. These are cached forward-pass measurements. Table~\ref{tab:componentstages} uses a separate raw EEG replay for each independently fitted stage.}\label{tab:componentheads}
+\setlength{\tabcolsep}{4pt}\begin{tabular}{@{}lrrrrrr@{}}\toprule
+&\multicolumn{3}{c}{Own best epoch}&\multicolumn{3}{c}{Final head's best epoch}\\
+\cmidrule(lr){2-4}\cmidrule(l){5-7}
+Output & Seed 3 & Seed 42 & Mean & Seed 3 & Seed 42 & Mean\\\midrule
+\ComponentHeads
+\bottomrule\end{tabular}
+\end{table}
+
+\paragraph{Method provenance.}
+The initial five regional sources use EfficientNetV2-S \citep{tan2021}. The six-expert layout and source checkpoints belong to the project baseline. Focal loss \citep{lin2017} is also shared with the baseline. The first detached regional-statistics correction, its combination of scores with pooled activations, and the subsequent peak-shape descriptors are project designs. Group DRO \citep{sagawa2020} is a methodological antecedent for emphasizing high-risk groups. This project's inverse class-conditional acquisition frequencies, cap of 64 and risk multiplier define its specific weighting rule. Pairwise logistic ranking \citep{burges2005} and online hard-example mining \citep{shrivastava2016} are antecedents for the minibatch ranking objective. Here the training code applies a margin of 0.5 and weights the ranking loss by 0.03.
+
+EmBrace \citep{jia2026} motivates inspecting intermediate EEG representations. The final method learns eight time weights within each region and retains the project's dense six-expert router. The allocation code also records BASE Layers \citep{lewis2021} as inspiration for the alternative balanced allocation arm. The selected arm normalizes positions independently for each region. The separate styled-peak variants use cross-source moment interpolation related to MixStyle \citep{zhou2021mixstyle}. The selected peak branch uses the observed window's moments. The regional auxiliary focal objective is a project implementation.
+
+Cross-Batch Memory \citep{wang2020} is the precedent for storing earlier negative representations. RanPAC \citep{mcdonnell2023} is the code-documented inspiration for accumulating statistics over frozen features. The project combines a within-acquisition constraint, risk-quantile negative selection, a regularized logistic update on pair differences and optional score refresh. These choices and the F1 values in this appendix were evaluated in this project. Two seeds and repeated source-validation selection limit attribution to the observed experiment.

@@ -148,7 +148,7 @@ Table~\ref{tab:benchmark} compares the local implementations on the same 166,079
 \subsection{The combined model and the refresh ablation}
 On the original 99-threshold grid, the full method improves F1 over the strict baseline for each seed (Appendix Table~\ref{tab:main}). The mean increases from 69.787 to 72.032. The individual full-model results, 72.096 and 71.967, lie on opposite sides of 72. At the chosen checkpoints both models assign relatively high thresholds to their positive predictions, and the full model's selected threshold is 0.95 for both seeds. Threshold values cannot be compared as absolute measures of confidence across differently trained readouts.
 
-Most of the separation from baseline is already present with scores evaluated at collection time. That variant gains 2.222 points on average, leaving 0.023 points between it and the full model. The largest and smallest two-seed means among the four memory policies are about 0.073 points apart. Refreshing both sides produces the highest score for seed 3, whereas retaining the original scores produces the highest score for seed 42. These observations give little basis for recommending the extra refresh computation solely on the strength of this validation result.
+Most of the separation from baseline is already present with scores evaluated at collection time. That variant gains 2.222 points on average, leaving 0.023 points between it and the full model. The largest and smallest two-seed means among the four memory policies are about 0.073 points apart. Refreshing both sides produces the highest score for seed 3, whereas retaining the original scores produces the highest score for seed 42. Appendix~\ref{sec:components} traces the full gain through the fitted components and separates the acquisition-weighting and ranking objectives.
 
 The eligibility criterion limits the number of observations that can distinguish these policies. The full-model fits encounter 138 and 150 eligible positive draws, compared with 12,900 total positive draws per fit. Each eligible positive in these runs finds 16 controls, yielding 2,208 and 2,400 pairs by the end of training. The 16 comparisons share the same positive window and some negatives can be selected more than once. Treating thousands of pairs as independent positive examples would exaggerate the evidence available to estimate a refresh effect.
 
@@ -350,4 +350,5 @@ Figures~\ref{fig:expertweights} and~\ref{fig:expertscores} group windows by true
 \caption{Routing-weight distributions for the six experts on true positive-class windows, including those the model misses. Points mark medians and whiskers span the 25th to 75th percentiles. The horizontal scale is shared across all panels.}\label{fig:expertdist}
 \end{figure}
 \input{time_control}
+\input{component_attribution}
 \end{document}

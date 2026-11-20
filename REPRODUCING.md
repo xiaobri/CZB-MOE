@@ -156,3 +156,36 @@ python tools/time_control_report.py --parts "$TC/raw" --lock "$TC/locked.json"
 ```
 
 The lock verifies each epoch's draws and batch order against the original baseline and checks equality of the complete trainable initialization within each seed. The evaluator compares source decisions with cached execution and checks the variation in temporal weights across real windows of the first batch in each shard. From a checkout with only aggregate results, `python3 tools/time_control_report.py` verifies the published table against its counts.
+
+## Attribute source F1 to model components
+
+The [component protocol](source/I2MOE/test333/fair_component_attribution/PROTOCOL.md) specifies the ordered stages, factorial loss interventions and information supplied to the first correction head. The eight fresh arms use the same complete initial weights within each seed. The published raw baseline, intermediate architectures and final pair model share their original core initialization and sampled training stream. The historical first-correction fit used a higher GPU allocator ceiling than its fresh replication. The [selection histories](results/component_epochs.csv) include integer validation counts for all epochs, including the four internal heads of the final fits.
+
+From a released checkout, `python3 tools/component_report.py` rechecks the selected epochs, counts and published contrasts. To refit the eight first-stage controls, use the frozen input cache and environment from the training section above.
+
+```bash
+CONTROL_RUNS="$CZB_RUNS/first_stage_component_controls"
+for ARM in plain rank weight full static_rank scores_only no_moments mean_only; do
+  for SEED in 3 42; do
+    CUDA_VISIBLE_DEVICES=0 python "$EXP/fair_component_attribution/train.py" --arm "$ARM" \
+      --seed "$SEED" --output-dir "$CONTROL_RUNS/$ARM/seed$SEED"
+  done
+done
+```
+
+For the retrospective sequence, the list of required original study folders is in `STAGES` and `PAIR_CONTROLS` in [component_records.py](tools/component_records.py). Place their original seed folders and committed metrics/checkpoints under `$CZB_RUNS/I2MOE_test333_<study>/formal/<method>`. Reading them is necessary to reproduce the historical contrasts. The raw replayer uses four independent, contiguous partitions per seed, preserving the original batch of 128 and the final partial batch.
+
+```bash
+ANALYSIS="$CZB_RUNS/component_attribution"
+python tools/component_records.py --original "$CZB_RUNS" --controls "$CONTROL_RUNS" --output "$ANALYSIS"
+PIDS=()
+for GPU in 0 1 2 3 4 5 6 7; do
+  SEED=3
+  if (( GPU >= 4 )); then SEED=42; fi
+  CUDA_VISIBLE_DEVICES="$GPU" python tools/component_replay.py --original "$CZB_RUNS" --controls "$CONTROL_RUNS" \
+    --lock "$ANALYSIS/lock.json" --output "$ANALYSIS/raw" --seed "$SEED" --shard "$((GPU%4))" &
+  PIDS+=("$!")
+done
+for PID in "${PIDS[@]}"; do wait "$PID" || exit 1; done
+python3 tools/component_report.py --private "$ANALYSIS"
+```

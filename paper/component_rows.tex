@@ -1,0 +1,38 @@
+\newcommand{\ComponentStages}{%
+Strict six-expert baseline & 69.390 & 70.184 & 69.787 & -- & -- & --\\
+Regional statistics head, weighted focal and ranking & 71.484 & 71.812 & 71.648 & +2.094 & +1.628 & +1.861\\
+Add peak-shape correction & 71.534 & 71.764 & 71.649 & +0.051 & -0.048 & +0.001\\
+Add temporal pooling and global adjustment & 71.563 & 71.447 & 71.505 & +0.029 & -0.317 & -0.144\\
+Add regional auxiliary focal supervision & 71.664 & 71.818 & 71.741 & +0.100 & +0.371 & +0.236\\
+Add within-group historical pair correction & 71.887 & 72.150 & 72.018 & +0.223 & +0.331 & +0.277\\
+Refresh positive and stored negative scores & 72.096 & 71.967 & 72.032 & +0.209 & -0.182 & +0.013\\
+}
+\newcommand{\ComponentFits}{%
+Unit weights, focal only & 69.616 & 69.410 & 69.513\\
+Unit weights, focal and ranking & 70.488 & 70.061 & 70.275\\
+Adaptive group weights, focal only & 70.345 & 70.475 & 70.410\\
+Adaptive group weights, focal and ranking & 71.533 & 71.292 & 71.413\\
+Static group weights, focal and ranking & 71.142 & 71.530 & 71.336\\
+Expert and mixture scores only & 69.882 & 70.114 & 69.998\\
+Scores and router features & 70.717 & 71.176 & 70.946\\
+Scores, router features and activation means & 71.590 & 71.335 & 71.462\\
+}
+\newcommand{\ComponentEffects}{%
+Weighting without ranking & +0.728 & +1.064 & +0.896\\
+Weighting with ranking & +1.045 & +1.231 & +1.138\\
+Ranking without weighting & +0.872 & +0.651 & +0.761\\
+Ranking with weighting & +1.189 & +0.817 & +1.003\\
+Adaptive vs. static weighting, with ranking & +0.391 & -0.238 & +0.076\\
+Adding router features to scores & +0.836 & +1.061 & +0.948\\
+Adding means to router features and scores & +0.873 & +0.159 & +0.516\\
+Adding maxima and SD to the means & -0.057 & -0.043 & -0.050\\
+Within-group vs. pooled risk quantiles & +0.456 & +0.214 & +0.335\\
+Weighting by ranking interaction & +0.317 & +0.167 & +0.242\\
+}
+\newcommand{\ComponentHeads}{%
+Six-expert core & 69.456 & 70.210 & 69.833 & 69.111 & 68.693 & 68.902\\
+Regional statistics correction & 71.390 & 71.674 & 71.532 & 71.040 & 70.649 & 70.845\\
+Peak-shape correction & 71.330 & 71.894 & 71.612 & 71.102 & 70.767 & 70.935\\
+Temporal and global adjustments & 71.664 & 71.705 & 71.684 & 71.341 & 71.408 & 71.374\\
+Final pair correction & 72.096 & 71.967 & 72.032 & 72.096 & 71.967 & 72.032\\
+}

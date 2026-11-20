@@ -8,6 +8,7 @@ from pathlib import Path
 from statistics import mean
 
 from benchmark_table import render as render_benchmark
+from component_report import render as render_components
 from time_control_report import table as temporal_table, verify_public as verify_temporal_control
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -174,6 +175,10 @@ def main():
     verify_temporal_control(temporal, json.loads((RESULTS / "time_control_protocol.json").read_text()))
     check(temporal_table(temporal) == (ROOT / "paper/time_control_rows.tex").read_text(),
           "Temporal control table differs from its counts")
+    component_tex, contrasts = render_components(RESULTS)
+    check(component_tex == (ROOT / "paper/component_rows.tex").read_text(), "Component ablation table differs")
+    check(csv_rows("component_effects.csv") == [{k: str(v) for k, v in r.items()} for r in contrasts],
+          "Published component contrasts differ from raw counts")
     verify_recording_budget()
     verify_external(selected)
     verify_operating_points(selected)
